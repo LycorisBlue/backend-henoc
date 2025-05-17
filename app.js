@@ -19,11 +19,11 @@ const { authenticate, authorize } = require('./middlewares/auth');
 
 // Import des routes ou controllers
 const AuthController = require('./controllers/AuthController');
-const AdminController = require('./controllers/AdminController');
-const ClientController = require('./controllers/ClientController');
-const RequestController = require('./controllers/RequestController');
-const InvoiceController = require('./controllers/InvoiceController');
-const PaymentController = require('./controllers/PaymentController');
+// const AdminController = require('./controllers/AdminController');
+// const ClientController = require('./controllers/ClientController');
+// const RequestController = require('./controllers/RequestController');
+// const InvoiceController = require('./controllers/InvoiceController');
+// const PaymentController = require('./controllers/PaymentController');
 
 const app = express();
 
@@ -80,11 +80,11 @@ app.use((req, res, next) => {
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 🔐 Routes
-app.use('/auth', loginLimiter, AuthController);                          // Authentification
-app.use('/admin', authenticate(), AdminController);                      // Administration
-app.use('/client', ClientController);                                    // Accès public client
-app.use('/request', authenticate(), RequestController);                  // Gestion des demandes
-app.use('/invoice', authenticate(), InvoiceController);                  // Facturation
-app.use('/payment', authenticate(), PaymentController);                  // Paiements
+app.use('/auth', loginLimiter, AuthController);
+// app.use('/admin', authenticate(), AdminController);
+// app.use('/client', ClientController);
+// app.use('/request', authenticate(), RequestController);
+// app.use('/invoice', authenticate(), InvoiceController);
+// app.use('/payment', authenticate(), PaymentController);
 
 module.exports = app;

@@ -1,10 +1,12 @@
+const express = require('express');
+const router = express.Router();
 const { Admin } = require('../../models');
 const bcrypt = require('bcrypt');
 const TokenManager = require('../../utils/TokenManager');
 const ApiResponse = require('../../utils/ApiResponse');
 const Logger = require('../../utils/Logger');
 
-module.exports = async (req, res) => {
+router.post('/', async (req, res) => {
     const { email, password } = req.body;
 
     const logData = {
@@ -66,4 +68,6 @@ module.exports = async (req, res) => {
 
         return ApiResponse.serverError(res, 'Erreur interne', { error: error.message });
     }
-};
+});
+
+module.exports = router;
