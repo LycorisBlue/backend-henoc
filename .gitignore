@@ -1,0 +1,49 @@
+# Dependencies
+/node_modules
+
+# Environment variables
+.env
+
+# Logs
+*.log
+logs/
+
+# Database
+*.sqlite
+*.db
+
+# IDE/Editor
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Debug files
+*.pid
+*.seed
+
+# Coverage directory
+coverage/
+
+# Build files
+/dist/
+/build/
+
+# Temp files
+*.tmp
+*.temp
+
+# Cache
+.cache/
+
+# Misc
+*.swp
+*.swo
+*~

@@ -1,0 +1,90 @@
+require('dotenv').config();
+const express = require('express');
+const path = require('path');
+const helmet = require('helmet');
+const cors = require('cors');
+const hpp = require('hpp');
+const compression = require('compression');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const rateLimit = require('express-rate-limit');
+const expressSanitizer = require('express-sanitizer');
+const swaggerUi = require('swagger-ui-express');
+
+// Swagger config
+const swaggerSpec = require('./config/swagger');
+
+// Middlewares d'authentification
+const { authenticate, authorize } = require('./middlewares/auth');
+
+// Import des routes ou controllers
+const AuthController = require('./controllers/AuthController');
+const AdminController = require('./controllers/AdminController');
+const ClientController = require('./controllers/ClientController');
+const RequestController = require('./controllers/RequestController');
+const InvoiceController = require('./controllers/InvoiceController');
+const PaymentController = require('./controllers/PaymentController');
+
+const app = express();
+
+app.set('trust proxy', 1);
+
+// 🚫 Rate limiting sur les endpoints sensibles
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { message: 'Trop de tentatives de connexion. Réessayez plus tard.' }
+});
+
+// 🌐 CORS
+if (['development', 'test'].includes(process.env.NODE_ENV)) {
+    app.use(cors({ origin: '*' }));
+}
+
+// 🔐 Sécurité
+app.use(helmet());
+app.use(hpp());
+app.use(compression());
+app.use(helmet.contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"]
+    }
+}));
+
+// 🧱 Middlewares essentiels
+app.use(logger('dev'));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+app.use(expressSanitizer());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Headers supplémentaires
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+});
+
+// 📄 Documentation API Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// 🔐 Routes
+app.use('/auth', loginLimiter, AuthController);                          // Authentification
+app.use('/admin', authenticate(), AdminController);                      // Administration
+app.use('/client', ClientController);                                    // Accès public client
+app.use('/request', authenticate(), RequestController);                  // Gestion des demandes
+app.use('/invoice', authenticate(), InvoiceController);                  // Facturation
+app.use('/payment', authenticate(), PaymentController);                  // Paiements
+
+module.exports = app;
