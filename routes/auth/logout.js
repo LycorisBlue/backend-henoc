@@ -19,7 +19,6 @@ router.post('/', authenticate(), async (req, res) => {
     };
 
     try {
-        // Utiliser le token qui a déjà été extrait et vérifié par le middleware d'authentification
         const token = req.token;
 
         if (!token) {

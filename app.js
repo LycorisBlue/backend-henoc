@@ -19,8 +19,10 @@ const { authenticate, authorize } = require('./middlewares/auth');
 
 // Import des routes ou controllers
 const AuthController = require('./controllers/AuthController');
-// const AdminController = require('./controllers/AdminController');
-// const ClientController = require('./controllers/ClientController');
+const AdminController = require('./controllers/AdminController');
+const ClientController = require('./controllers/ClientController');
+const SuperadminController = require('./controllers/SuperadminController');
+
 // const RequestController = require('./controllers/RequestController');
 // const InvoiceController = require('./controllers/InvoiceController');
 // const PaymentController = require('./controllers/PaymentController');
@@ -81,8 +83,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 🔐 Routes
 app.use('/auth', loginLimiter, AuthController);
-// app.use('/admin', authenticate(), AdminController);
-// app.use('/client', ClientController);
+app.use('/admin', authenticate(), AdminController);
+app.use('/client', ClientController);
+app.use('/superadmin', SuperadminController);
 // app.use('/request', authenticate(), RequestController);
 // app.use('/invoice', authenticate(), InvoiceController);
 // app.use('/payment', authenticate(), PaymentController);
