@@ -1,0 +1,151 @@
+tags:
+  - name: Authentication
+    description: API pour gérer l'authentification des administrateurs
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Connexion administrateur
+      description: Authentifie un administrateur avec son email et mot de passe et retourne les tokens d'accès
+      operationId: loginAdmin
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email de l'administrateur
+                  example: "admin@example.com"
+                password:
+                  type: string
+                  format: password
+                  description: Mot de passe de l'administrateur
+                  example: "Admin@123"
+
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Connexion réussie"
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        description: JWT token d'accès
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      refreshToken:
+                        type: string
+                        description: JWT token de rafraîchissement (non fourni pour les superadmin)
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      role:
+                        type: string
+                        enum: [admin, superadmin]
+                        description: Rôle de l'administrateur
+                        example: "admin"
+
+        '400':
+          description: Données de requête invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email et mot de passe requis"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [MISSING_REQUIRED_FIELDS]
+                        example: "MISSING_REQUIRED_FIELDS"
+
+        '401':
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Identifiants invalides"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [INVALID_EMAIL, INVALID_PASSWORD]
+                        example: "INVALID_PASSWORD"
+              examples:
+                invalidEmail:
+                  summary: Email non reconnu
+                  value:
+                    message: "Identifiants invalides"
+                    data:
+                      errorType: "INVALID_EMAIL"
+                invalidPassword:
+                  summary: Mot de passe incorrect
+                  value:
+                    message: "Identifiants invalides"
+                    data:
+                      errorType: "INVALID_PASSWORD"
+
+        '429':
+          description: Trop de tentatives de connexion
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Trop de tentatives de connexion. Réessayez plus tard."
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [RATE_LIMIT_ERROR]
+                        example: "RATE_LIMIT_ERROR"
+
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur interne"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [SERVER_ERROR]
+                        example: "SERVER_ERROR"
+
+      security: []  # Pas d'authentification requise pour cette route

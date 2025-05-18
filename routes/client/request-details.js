@@ -73,6 +73,7 @@ router.get('/:id', async (req, res) => {
             attributes: ['previous_status', 'new_status', 'comment', 'created_at'],
             order: [['created_at', 'ASC']]
         });
+        console.log('Status History:', request);
 
         // Construire la réponse
         const responseData = {
@@ -87,7 +88,7 @@ router.get('/:id', async (req, res) => {
             })),
             description: request.description,
             status: request.status,
-            created_at: request.created_at,
+            created_at: request.createdAt,
             assigned_admin: request.assigned_admin ? {
                 id: request.assigned_admin.id,
                 name: request.assigned_admin.name
@@ -96,7 +97,7 @@ router.get('/:id', async (req, res) => {
                 from: log.previous_status || 'initial',
                 to: log.new_status,
                 comment: log.comment,
-                date: log.created_at
+                date: log.createdAt
             }))
         };
 

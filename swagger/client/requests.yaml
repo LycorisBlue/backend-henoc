@@ -1,0 +1,164 @@
+tags:
+  - name: Client
+    description: API pour gérer les demandes client
+
+paths:
+  /client/requests:
+    post:
+      tags:
+        - Client
+      summary: Créer une nouvelle demande
+      description: Permet de soumettre une nouvelle demande avec des liens de produits et/ou une description
+      operationId: createRequest
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - whatsapp_number
+              properties:
+                whatsapp_number:
+                  type: string
+                  description: Numéro WhatsApp du client au format international
+                  example: "+2250102030405"
+                product_links:
+                  type: array
+                  description: Liste des liens vers les produits demandés
+                  items:
+                    type: string
+                    format: uri
+                    example: "https://www.example.com/product/123"
+                description:
+                  type: string
+                  description: Description détaillée de la demande
+                  example: "Je souhaite commander ces produits avec livraison express si possible."
+
+      responses:
+        '201':
+          description: Demande créée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Votre demande a été soumise avec succès"
+                  data:
+                    type: object
+                    properties:
+                      request_id:
+                        type: string
+                        format: uuid
+                        description: Identifiant unique de la demande
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      status:
+                        type: string
+                        enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+                        description: Statut initial de la demande
+                        example: "en_attente"
+                      client:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique du client
+                            example: "550e8400-e29b-41d4-a716-446655440000"
+                          whatsapp_number:
+                            type: string
+                            description: Numéro WhatsApp du client
+                            example: "+2250102030405"
+                          is_new_client:
+                            type: boolean
+                            description: Indique si le client a été créé lors de cette demande
+                            example: true
+                      description:
+                        type: string
+                        description: Description de la demande
+                        example: "Je souhaite commander ces produits avec livraison express si possible."
+                      product_links:
+                        type: array
+                        description: Liste des liens produits soumis
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant unique du lien produit
+                              example: "550e8400-e29b-41d4-a716-446655440000"
+                            url:
+                              type: string
+                              format: uri
+                              description: URL du produit
+                              example: "https://www.example.com/product/123"
+
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message d'erreur descriptif
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [MISSING_WHATSAPP_NUMBER, MISSING_PRODUCT_INFORMATION, INVALID_PRODUCT_LINKS_FORMAT, INVALID_WHATSAPP_NUMBER_FORMAT]
+                        description: Type d'erreur standardisé
+              examples:
+                missingWhatsappNumber:
+                  summary: Numéro WhatsApp manquant
+                  value:
+                    message: "Le numéro WhatsApp est obligatoire"
+                    data:
+                      errorType: "MISSING_WHATSAPP_NUMBER"
+                missingProductInfo:
+                  summary: Informations produit manquantes
+                  value:
+                    message: "Veuillez fournir au moins un lien de produit ou une description"
+                    data:
+                      errorType: "MISSING_PRODUCT_INFORMATION"
+                invalidProductLinksFormat:
+                  summary: Format de liens produits invalide
+                  value:
+                    message: "Les liens de produits doivent être fournis sous forme de tableau"
+                    data:
+                      errorType: "INVALID_PRODUCT_LINKS_FORMAT"
+                invalidWhatsappFormat:
+                  summary: Format de numéro WhatsApp invalide
+                  value:
+                    message: "Format du numéro WhatsApp invalide. Utilisez le format international (ex: +2250102030405)"
+                    data:
+                      errorType: "INVALID_WHATSAPP_NUMBER_FORMAT"
+
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Une erreur est survenue lors du traitement de votre demande"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [SERVER_ERROR]
+                        example: "SERVER_ERROR"
+
+      security: [] # Pas d'authentification requise pour cette route

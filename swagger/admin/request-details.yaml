@@ -1,0 +1,334 @@
+tags:
+  - name: Admin
+    description: API pour la gestion des demandes client par les administrateurs
+
+paths:
+  /admin/requests/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Obtenir les détails d'une demande
+      description: Récupère les informations détaillées d'une demande spécifique et son historique
+      operationId: getRequestDetails
+      
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique de la demande
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      
+      responses:
+        '200':
+          description: Détails de la demande récupérés avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Détails de la demande"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Identifiant unique de la demande
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      description:
+                        type: string
+                        description: Description de la demande
+                        example: "Je souhaite commander ces produits avec livraison express si possible."
+                      status:
+                        type: string
+                        enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+                        description: Statut actuel de la demande
+                        example: "en_traitement"
+                      created_at:
+                        type: string
+                        format: date-time
+                        description: Date de création de la demande
+                        example: "2025-05-16T19:00:00.000Z"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        description: Date de dernière mise à jour de la demande
+                        example: "2025-05-16T19:30:00.000Z"
+                      permissions:
+                        type: object
+                        description: Permissions de l'administrateur sur cette demande
+                        properties:
+                          can_modify:
+                            type: boolean
+                            description: Indique si l'admin peut modifier cette demande
+                            example: true
+                      client:
+                        type: object
+                        description: Informations sur le client
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique du client
+                            example: "550e8400-e29b-41d4-a716-446655440001"
+                          whatsapp_number:
+                            type: string
+                            description: Numéro WhatsApp du client
+                            example: "+2250102030405"
+                          full_name:
+                            type: string
+                            description: Nom complet du client
+                            example: "Jean Dupont"
+                          email:
+                            type: string
+                            format: email
+                            description: Email du client
+                            example: "jean.dupont@example.com"
+                          adresse:
+                            type: string
+                            description: Adresse du client
+                            example: "123 Rue Principale, Abidjan, Côte d'Ivoire"
+                      product_links:
+                        type: array
+                        description: Liste des liens de produits associés à la demande
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant unique du lien produit
+                              example: "550e8400-e29b-41d4-a716-446655440003"
+                            url:
+                              type: string
+                              format: uri
+                              description: URL du produit
+                              example: "https://www.example.com/product/123"
+                            note:
+                              type: string
+                              description: Note optionnelle sur le produit
+                              example: "Taille M, couleur rouge"
+                            created_at:
+                              type: string
+                              format: date-time
+                              description: Date d'ajout du lien produit
+                              example: "2025-05-16T19:00:00.000Z"
+                      assigned_admin:
+                        type: object
+                        description: Informations sur l'administrateur assigné
+                        nullable: true
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique de l'administrateur
+                            example: "550e8400-e29b-41d4-a716-446655440002"
+                          name:
+                            type: string
+                            description: Nom de l'administrateur
+                            example: "Admin Support"
+                          email:
+                            type: string
+                            format: email
+                            description: Email de l'administrateur
+                            example: "admin@example.com"
+                          is_current_admin:
+                            type: boolean
+                            description: Indique si c'est l'administrateur actuellement connecté
+                            example: true
+                      invoice:
+                        type: object
+                        description: Informations sur la facture associée (si disponible)
+                        nullable: true
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique de la facture
+                            example: "550e8400-e29b-41d4-a716-446655440004"
+                          total_amount:
+                            type: number
+                            format: float
+                            description: Montant total de la facture
+                            example: 150000.00
+                          status:
+                            type: string
+                            enum: [en_attente, payé, annulé]
+                            description: Statut de la facture
+                            example: "en_attente"
+                          created_at:
+                            type: string
+                            format: date-time
+                            description: Date de création de la facture
+                            example: "2025-05-16T20:00:00.000Z"
+                          payments:
+                            type: array
+                            description: Liste des paiements associés à la facture
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  format: uuid
+                                  description: Identifiant unique du paiement
+                                  example: "550e8400-e29b-41d4-a716-446655440005"
+                                amount_paid:
+                                  type: number
+                                  format: float
+                                  description: Montant payé
+                                  example: 75000.00
+                                method:
+                                  type: string
+                                  enum: [wave, momo, orange_money, zeepay, cash]
+                                  description: Méthode de paiement
+                                  example: "wave"
+                                payment_date:
+                                  type: string
+                                  format: date-time
+                                  description: Date du paiement
+                                  example: "2025-05-16T21:00:00.000Z"
+                                confirmed_by:
+                                  type: object
+                                  description: Administrateur ayant confirmé le paiement
+                                  properties:
+                                    id:
+                                      type: string
+                                      format: uuid
+                                      description: Identifiant de l'administrateur
+                                      example: "550e8400-e29b-41d4-a716-446655440002"
+                                    name:
+                                      type: string
+                                      description: Nom de l'administrateur
+                                      example: "Admin Support"
+                      status_history:
+                        type: array
+                        description: Historique des changements de statut de la demande
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant de l'entrée de journal
+                              example: "550e8400-e29b-41d4-a716-446655440006"
+                            previous_status:
+                              type: string
+                              description: Statut précédent
+                              example: "en_attente"
+                            new_status:
+                              type: string
+                              description: Nouveau statut
+                              example: "en_traitement"
+                            comment:
+                              type: string
+                              description: Commentaire sur le changement
+                              example: "Prise en charge de la demande"
+                            created_at:
+                              type: string
+                              format: date-time
+                              description: Date du changement
+                              example: "2025-05-16T19:30:00.000Z"
+                            admin:
+                              type: object
+                              description: Administrateur ayant effectué le changement
+                              properties:
+                                id:
+                                  type: string
+                                  format: uuid
+                                  description: Identifiant de l'administrateur
+                                  example: "550e8400-e29b-41d4-a716-446655440002"
+                                name:
+                                  type: string
+                                  description: Nom de l'administrateur
+                                  example: "Admin Support"
+
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Non authentifié"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [UNAUTHORIZED]
+                        example: "UNAUTHORIZED"
+
+        '403':
+          description: Accès refusé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Rôle insuffisant"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [INSUFFICIENT_PRIVILEGES]
+                        example: "INSUFFICIENT_PRIVILEGES"
+                      requiredRoles:
+                        type: array
+                        items:
+                          type: string
+                        example: ["admin", "superadmin"]
+                      userRole:
+                        type: string
+                        example: "user"
+
+        '404':
+          description: Demande non trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Demande non trouvée"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [REQUEST_NOT_FOUND]
+                        example: "REQUEST_NOT_FOUND"
+
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur interne"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [SERVER_ERROR]
+                        example: "SERVER_ERROR"
+
+      security:
+        - bearerAuth: []

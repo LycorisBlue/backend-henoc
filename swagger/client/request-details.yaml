@@ -1,0 +1,191 @@
+tags:
+  - name: Client
+    description: API pour gérer les demandes client
+
+paths:
+  /client/requests/{id}:
+    get:
+      tags:
+        - Client
+      summary: Consulter les détails d'une demande
+      description: Permet à un client de consulter les détails d'une demande spécifique et son statut actuel
+      operationId: getRequestDetails
+      
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique de la demande
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        - name: whatsapp_number
+          in: query
+          required: false
+          description: Numéro WhatsApp du client pour vérification (optionnel)
+          schema:
+            type: string
+          example: "+2250102030405"
+      
+      responses:
+        '200':
+          description: Détails de la demande récupérés avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Détails de la demande"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Identifiant unique de la demande
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      whatsapp_number:
+                        type: string
+                        description: Numéro WhatsApp du client
+                        example: "+2250102030405"
+                      client_name:
+                        type: string
+                        description: Nom complet du client (si disponible)
+                        example: "Jean Dupont"
+                      product_links:
+                        type: array
+                        description: Liste des liens produits soumis
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant unique du lien produit
+                              example: "550e8400-e29b-41d4-a716-446655440000"
+                            url:
+                              type: string
+                              format: uri
+                              description: URL du produit
+                              example: "https://www.example.com/product/123"
+                            note:
+                              type: string
+                              description: Note éventuelle sur le produit
+                              example: "Taille M, couleur rouge"
+                            created_at:
+                              type: string
+                              format: date-time
+                              description: Date de création du lien produit
+                              example: "2025-05-16T19:00:00.000Z"
+                      description:
+                        type: string
+                        description: Description de la demande
+                        example: "Je souhaite commander ces produits avec livraison express si possible."
+                      status:
+                        type: string
+                        enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+                        description: Statut actuel de la demande
+                        example: "en_traitement"
+                      created_at:
+                        type: string
+                        format: date-time
+                        description: Date de création de la demande
+                        example: "2025-05-16T19:00:00.000Z"
+                      assigned_admin:
+                        type: object
+                        description: Administrateur assigné à la demande (si disponible)
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique de l'administrateur
+                            example: "550e8400-e29b-41d4-a716-446655440000"
+                          name:
+                            type: string
+                            description: Nom de l'administrateur
+                            example: "Admin Support"
+                      status_history:
+                        type: array
+                        description: Historique des changements de statut
+                        items:
+                          type: object
+                          properties:
+                            from:
+                              type: string
+                              description: Statut précédent
+                              example: "en_attente"
+                            to:
+                              type: string
+                              description: Nouveau statut
+                              example: "en_traitement"
+                            comment:
+                              type: string
+                              description: Commentaire sur le changement de statut
+                              example: "Prise en charge de la demande"
+                            date:
+                              type: string
+                              format: date-time
+                              description: Date du changement de statut
+                              example: "2025-05-16T19:30:00.000Z"
+
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Vous n'êtes pas autorisé à consulter cette demande"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [WHATSAPP_NUMBER_MISMATCH]
+                        example: "WHATSAPP_NUMBER_MISMATCH"
+
+        '404':
+          description: Demande non trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Demande non trouvée"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [REQUEST_NOT_FOUND]
+                        example: "REQUEST_NOT_FOUND"
+
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Une erreur est survenue lors de la récupération des détails de la demande"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [SERVER_ERROR]
+                        example: "SERVER_ERROR"
+
+      security: [] # Pas d'authentification requise pour cette route

@@ -1,0 +1,389 @@
+tags:
+  - name: Admin
+    description: API pour la gestion des demandes client par les administrateurs
+
+paths:
+  /admin/invoices/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Obtenir les détails d'une facture
+      description: Récupère les informations détaillées d'une facture, y compris ses articles, frais et paiements
+      operationId: getInvoiceDetails
+      
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique de la facture
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440100"
+      
+      responses:
+        '200':
+          description: Détails de la facture récupérés avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Détails de la facture"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Identifiant unique de la facture
+                        example: "550e8400-e29b-41d4-a716-446655440100"
+                      request_id:
+                        type: string
+                        format: uuid
+                        description: Identifiant de la demande associée
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      admin_id:
+                        type: string
+                        format: uuid
+                        description: Identifiant de l'administrateur ayant créé la facture
+                        example: "550e8400-e29b-41d4-a716-446655440002"
+                      total_amount:
+                        type: number
+                        format: float
+                        description: Montant total de la facture
+                        example: 130000.00
+                      status:
+                        type: string
+                        enum: [en_attente, payé, annulé]
+                        description: Statut de la facture
+                        example: "en_attente"
+                      created_at:
+                        type: string
+                        format: date-time
+                        description: Date de création de la facture
+                        example: "2025-05-16T20:00:00.000Z"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        description: Date de dernière mise à jour de la facture
+                        example: "2025-05-16T20:00:00.000Z"
+                      permissions:
+                        type: object
+                        description: Permissions de l'administrateur sur cette facture
+                        properties:
+                          can_modify:
+                            type: boolean
+                            description: Indique si l'admin peut modifier cette facture
+                            example: true
+                      payment_info:
+                        type: object
+                        description: Informations sur le paiement
+                        properties:
+                          payment_status:
+                            type: string
+                            enum: [paid, partial, unpaid]
+                            description: Statut du paiement
+                            example: "partial"
+                          amount_paid:
+                            type: number
+                            format: float
+                            description: Montant déjà payé
+                            example: 50000.00
+                          remaining_amount:
+                            type: number
+                            format: float
+                            description: Montant restant à payer
+                            example: 80000.00
+                          payment_progress:
+                            type: integer
+                            description: Pourcentage de paiement (0-100)
+                            example: 38
+                      totals:
+                        type: object
+                        description: Récapitulatif des montants
+                        properties:
+                          items_total:
+                            type: number
+                            format: float
+                            description: Total des articles
+                            example: 125000.00
+                          fees_total:
+                            type: number
+                            format: float
+                            description: Total des frais
+                            example: 5000.00
+                          grand_total:
+                            type: number
+                            format: float
+                            description: Montant total de la facture
+                            example: 130000.00
+                      client:
+                        type: object
+                        description: Informations sur le client
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique du client
+                            example: "550e8400-e29b-41d4-a716-446655440001"
+                          whatsapp_number:
+                            type: string
+                            description: Numéro WhatsApp du client
+                            example: "+2250102030405"
+                          full_name:
+                            type: string
+                            description: Nom complet du client
+                            example: "Jean Dupont"
+                          email:
+                            type: string
+                            format: email
+                            description: Email du client
+                            example: "jean.dupont@example.com"
+                          adresse:
+                            type: string
+                            description: Adresse du client
+                            example: "123 Rue Principale, Abidjan, Côte d'Ivoire"
+                      request:
+                        type: object
+                        description: Informations sur la demande
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique de la demande
+                            example: "550e8400-e29b-41d4-a716-446655440000"
+                          description:
+                            type: string
+                            description: Description de la demande
+                            example: "Commande de smartphone et accessoires"
+                          status:
+                            type: string
+                            enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+                            description: Statut de la demande
+                            example: "facturé"
+                          created_at:
+                            type: string
+                            format: date-time
+                            description: Date de création de la demande
+                            example: "2025-05-16T19:00:00.000Z"
+                      admin:
+                        type: object
+                        description: Informations sur l'administrateur
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique de l'administrateur
+                            example: "550e8400-e29b-41d4-a716-446655440002"
+                          name:
+                            type: string
+                            description: Nom de l'administrateur
+                            example: "Admin Support"
+                          email:
+                            type: string
+                            format: email
+                            description: Email de l'administrateur
+                            example: "admin@example.com"
+                          is_current_admin:
+                            type: boolean
+                            description: Indique si c'est l'administrateur actuellement connecté
+                            example: true
+                      items:
+                        type: array
+                        description: Articles de la facture
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant unique de l'article
+                              example: "550e8400-e29b-41d4-a716-446655440101"
+                            name:
+                              type: string
+                              description: Nom ou description de l'article
+                              example: "Smartphone XYZ 128Go"
+                            unit_price:
+                              type: number
+                              format: float
+                              description: Prix unitaire de l'article
+                              example: 125000.00
+                            quantity:
+                              type: integer
+                              description: Quantité d'articles
+                              example: 1
+                            subtotal:
+                              type: number
+                              format: float
+                              description: Sous-total pour cet article
+                              example: 125000.00
+                      fees:
+                        type: array
+                        description: Frais additionnels de la facture
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant unique des frais
+                              example: "550e8400-e29b-41d4-a716-446655440102"
+                            fee_type:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  format: uuid
+                                  description: Identifiant du type de frais
+                                  example: "550e8400-e29b-41d4-a716-446655440010"
+                                name:
+                                  type: string
+                                  description: Nom du type de frais
+                                  example: "Livraison"
+                                description:
+                                  type: string
+                                  description: Description du type de frais
+                                  example: "Frais de livraison standard"
+                            amount:
+                              type: number
+                              format: float
+                              description: Montant des frais
+                              example: 5000.00
+                      payments:
+                        type: array
+                        description: Paiements associés à la facture
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant unique du paiement
+                              example: "550e8400-e29b-41d4-a716-446655440200"
+                            amount_paid:
+                              type: number
+                              format: float
+                              description: Montant payé
+                              example: 50000.00
+                            method:
+                              type: string
+                              enum: [wave, momo, orange_money, zeepay, cash]
+                              description: Méthode de paiement
+                              example: "wave"
+                            payment_date:
+                              type: string
+                              format: date-time
+                              description: Date du paiement
+                              example: "2025-05-16T21:00:00.000Z"
+                            confirmed_by:
+                              type: object
+                              description: Administrateur ayant confirmé le paiement
+                              properties:
+                                id:
+                                  type: string
+                                  format: uuid
+                                  description: Identifiant de l'administrateur
+                                  example: "550e8400-e29b-41d4-a716-446655440002"
+                                name:
+                                  type: string
+                                  description: Nom de l'administrateur
+                                  example: "Admin Support"
+                                email:
+                                  type: string
+                                  format: email
+                                  description: Email de l'administrateur
+                                  example: "admin@example.com"
+                            created_at:
+                              type: string
+                              format: date-time
+                              description: Date de création du paiement
+                              example: "2025-05-16T21:00:00.000Z"
+
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Non authentifié"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [UNAUTHORIZED]
+                        example: "UNAUTHORIZED"
+
+        '403':
+          description: Accès refusé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Rôle insuffisant"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [INSUFFICIENT_PRIVILEGES]
+                        example: "INSUFFICIENT_PRIVILEGES"
+                      requiredRoles:
+                        type: array
+                        items:
+                          type: string
+                        example: ["admin", "superadmin"]
+                      userRole:
+                        type: string
+                        example: "user"
+
+        '404':
+          description: Facture non trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Facture non trouvée"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [INVOICE_NOT_FOUND]
+                        example: "INVOICE_NOT_FOUND"
+
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur interne"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [SERVER_ERROR]
+                        example: "SERVER_ERROR"
+
+      security:
+        - bearerAuth: []

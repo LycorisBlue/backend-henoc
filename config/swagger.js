@@ -21,7 +21,7 @@ const getServers = () => {
             break;
         default:
             servers.push({
-                url: process.env.DEV_API_URL || 'http://localhost:3000',
+                url: process.env.DEV_API_URL || 'http://localhost:3005',
                 description: 'Serveur de développement'
             });
     }
@@ -35,7 +35,7 @@ const options = {
         info: {
             title: 'Mon Fournisseur 2.0 - API Documentation',
             version: '1.0.0',
-            description: 'Documentation de l’API pour la plateforme Mon Fournisseur 2.0',
+            description: "Documentation de l'API pour la plateforme Mon Fournisseur 2.0",
             contact: {
                 name: 'Mon Fournisseur 2.0',
                 email: 'support@monfournisseur.com'
@@ -59,10 +59,8 @@ const options = {
         './swagger/auth/*.yaml',
         './swagger/admin/*.yaml',
         './swagger/client/*.yaml',
-        './swagger/request/*.yaml',
-        './swagger/invoice/*.yaml',
-        './swagger/payment/*.yaml',
-        './swagger/docs/*.yaml'
+        './swagger/superadmin/*.yaml',
+        './swagger/common/*.yaml'
     ]
 };
 

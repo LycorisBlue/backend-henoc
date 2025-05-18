@@ -1,0 +1,129 @@
+tags:
+  - name: Authentication
+    description: API pour gérer l'authentification des administrateurs
+
+paths:
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Déconnexion administrateur
+      description: Révoque le token actuel et tous les tokens associés à l'administrateur
+      operationId: logoutAdmin
+      
+      responses:
+        '200':
+          description: Déconnexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Déconnexion réussie"
+        
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token non fourni"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [TOKEN_MISSING]
+                        example: "TOKEN_MISSING"
+        
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message d'erreur descriptif
+                    example: "Token manquant"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED, TOKEN_EXPIRED_OR_REVOKED, UNAUTHORIZED]
+                        description: Type d'erreur standardisé
+                        example: "UNAUTHORIZED"
+                      expired:
+                        type: boolean
+                        description: Indique si le token est expiré (présent uniquement pour TOKEN_EXPIRED)
+                        example: true
+                      role:
+                        type: string
+                        description: Rôle de l'administrateur (présent uniquement dans certains cas)
+                        example: "admin"
+              examples:
+                unauthorized:
+                  summary: Non autorisé
+                  value:
+                    message: "Non authentifié"
+                    data:
+                      errorType: "UNAUTHORIZED"
+                tokenInvalid:
+                  summary: Token invalide
+                  value:
+                    message: "Token invalide"
+                    data:
+                      errorType: "TOKEN_INVALID"
+                tokenExpired:
+                  summary: Token expiré
+                  value:
+                    message: "Token expiré"
+                    data:
+                      errorType: "TOKEN_EXPIRED"
+                      expired: true
+                      role: "admin"
+        
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur lors de la déconnexion"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [TOKEN_REVOCATION_ERROR, SERVER_ERROR]
+                        example: "SERVER_ERROR"
+              examples:
+                revocationError:
+                  summary: Erreur de révocation du token
+                  value:
+                    message: "Erreur lors de la déconnexion"
+                    data:
+                      errorType: "TOKEN_REVOCATION_ERROR"
+                serverError:
+                  summary: Erreur serveur
+                  value:
+                    message: "Erreur interne"
+                    data:
+                      error: "Internal server error message"
+                      errorType: "SERVER_ERROR"
+      
+      security:
+        - bearerAuth: []

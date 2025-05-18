@@ -1,0 +1,150 @@
+tags:
+  - name: Authentication
+    description: API pour gérer l'authentification des administrateurs
+
+paths:
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Rafraîchir le token d'accès
+      description: Génère un nouveau token d'accès à partir d'un token de rafraîchissement valide
+      operationId: refreshToken
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  description: Token de rafraîchissement
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+      responses:
+        '200':
+          description: Token rafraîchi avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token rafraîchi avec succès"
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        description: Nouveau token d'accès
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      role:
+                        type: string
+                        enum: [admin, superadmin]
+                        description: Rôle de l'administrateur
+                        example: "admin"
+
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token de rafraîchissement requis"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [TOKEN_MISSING]
+                        example: "TOKEN_MISSING"
+
+        '401':
+          description: Token invalide ou expiré
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message d'erreur descriptif
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [TOKEN_INVALID, TOKEN_EXPIRED, TOKEN_REVOKED]
+                        description: Type d'erreur standardisé
+                      message:
+                        type: string
+                        description: Message détaillé sur l'erreur (présent uniquement pour certains types d'erreurs)
+              examples:
+                invalidToken:
+                  summary: Token invalide
+                  value:
+                    message: "Token de rafraîchissement invalide"
+                    data:
+                      errorType: "TOKEN_INVALID"
+                      message: "Signature non valide"
+                expiredToken:
+                  summary: Token expiré
+                  value:
+                    message: "Token de rafraîchissement expiré"
+                    data:
+                      errorType: "TOKEN_EXPIRED"
+                revokedToken:
+                  summary: Token révoqué
+                  value:
+                    message: "Token de rafraîchissement révoqué ou inexistant"
+                    data:
+                      errorType: "TOKEN_REVOKED"
+
+        '404':
+          description: Administrateur non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Administrateur non trouvé"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [ADMIN_NOT_FOUND]
+                        example: "ADMIN_NOT_FOUND"
+
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur serveur lors du rafraîchissement du token"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [SERVER_ERROR]
+                        example: "SERVER_ERROR"
+
+      security: []  # Pas d'authentification requise pour cette route

@@ -1,0 +1,153 @@
+tags:
+  - name: Admin
+    description: API pour la gestion des demandes client par les administrateurs
+
+paths:
+  /admin/requests/{id}/assign:
+    put:
+      tags:
+        - Admin
+      summary: Assigner une demande
+      description: Assigne une demande à un administrateur (par défaut, l'administrateur connecté)
+      operationId: assignRequest
+      
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique de la demande
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                admin_id:
+                  type: string
+                  format: uuid
+                  description: Identifiant de l'administrateur à qui assigner la demande (facultatif, par défaut l'admin connecté)
+                  example: "550e8400-e29b-41d4-a716-446655440002"
+      
+      responses:
+        '200':
+          description: Demande assignée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Demande assignée avec succès"
+                  data:
+                    type: object
+                    properties:
+                      request_id:
+                        type: string
+                        format: uuid
+                        description: Identifiant unique de la demande
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      assigned_admin_id:
+                        type: string
+                        format: uuid
+                        description: Identifiant de l'administrateur assigné
+                        example: "550e8400-e29b-41d4-a716-446655440002"
+                      previous_admin_id:
+                        type: string
+                        format: uuid
+                        description: Identifiant de l'administrateur précédemment assigné (null si aucun)
+                        nullable: true
+                        example: null
+                      status:
+                        type: string
+                        enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+                        description: Statut actuel de la demande
+                        example: "en_traitement"
+                      status_updated:
+                        type: boolean
+                        description: Indique si le statut a été mis à jour lors de l'assignation
+                        example: true
+
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Non authentifié"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [UNAUTHORIZED]
+                        example: "UNAUTHORIZED"
+
+        '403':
+          description: Accès refusé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Seul un superadmin peut assigner une demande à un autre administrateur"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [INSUFFICIENT_PERMISSIONS]
+                        example: "INSUFFICIENT_PERMISSIONS"
+
+        '404':
+          description: Demande non trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Demande non trouvée"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [REQUEST_NOT_FOUND]
+                        example: "REQUEST_NOT_FOUND"
+
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur interne"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [SERVER_ERROR]
+                        example: "SERVER_ERROR"
+
+      security:
+        - bearerAuth: []

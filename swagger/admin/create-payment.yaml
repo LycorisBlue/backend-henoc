@@ -1,0 +1,301 @@
+tags:
+  - name: Admin
+    description: API pour la gestion des demandes client par les administrateurs
+
+paths:
+  /admin/invoices/{id}/payment:
+    post:
+      tags:
+        - Admin
+      summary: Enregistrer un paiement
+      description: Enregistre un nouveau paiement pour une facture et met à jour son statut si nécessaire
+      operationId: createPayment
+      
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique de la facture
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440100"
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount_paid
+                - method
+                - payment_date
+              properties:
+                amount_paid:
+                  type: number
+                  format: float
+                  description: Montant du paiement
+                  example: 50000.00
+                method:
+                  type: string
+                  enum: [wave, momo, orange_money, zeepay, cash]
+                  description: Méthode de paiement
+                  example: "wave"
+                payment_date:
+                  type: string
+                  format: date-time
+                  description: Date du paiement
+                  example: "2025-05-16T21:00:00.000Z"
+                reference:
+                  type: string
+                  description: Référence du paiement (optionnel)
+                  example: "TRX123456789"
+      
+      responses:
+        '201':
+          description: Paiement enregistré avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Paiement enregistré avec succès"
+                  data:
+                    type: object
+                    properties:
+                      payment:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique du paiement
+                            example: "550e8400-e29b-41d4-a716-446655440200"
+                          invoice_id:
+                            type: string
+                            format: uuid
+                            description: Identifiant de la facture associée
+                            example: "550e8400-e29b-41d4-a716-446655440100"
+                          amount_paid:
+                            type: number
+                            format: float
+                            description: Montant payé
+                            example: 50000.00
+                          method:
+                            type: string
+                            enum: [wave, momo, orange_money, zeepay, cash]
+                            description: Méthode de paiement
+                            example: "wave"
+                          payment_date:
+                            type: string
+                            format: date-time
+                            description: Date du paiement
+                            example: "2025-05-16T21:00:00.000Z"
+                          confirmed_by:
+                            type: string
+                            format: uuid
+                            description: Identifiant de l'administrateur ayant confirmé le paiement
+                            example: "550e8400-e29b-41d4-a716-446655440002"
+                          created_at:
+                            type: string
+                            format: date-time
+                            description: Date de création du paiement
+                            example: "2025-05-16T21:05:00.000Z"
+                      invoice:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique de la facture
+                            example: "550e8400-e29b-41d4-a716-446655440100"
+                          total_amount:
+                            type: number
+                            format: float
+                            description: Montant total de la facture
+                            example: 130000.00
+                          status:
+                            type: string
+                            enum: [en_attente, payé, annulé]
+                            description: Statut actuel de la facture
+                            example: "en_attente"
+                          total_paid:
+                            type: number
+                            format: float
+                            description: Montant total payé
+                            example: 50000.00
+                          remaining_amount:
+                            type: number
+                            format: float
+                            description: Montant restant à payer
+                            example: 80000.00
+                          is_fully_paid:
+                            type: boolean
+                            description: Indique si la facture est entièrement payée
+                            example: false
+                          payment_progress:
+                            type: integer
+                            description: Pourcentage de paiement (0-100)
+                            example: 38
+                      request:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique de la demande
+                            example: "550e8400-e29b-41d4-a716-446655440000"
+                          status:
+                            type: string
+                            enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+                            description: Statut actuel de la demande
+                            example: "facturé"
+
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message d'erreur descriptif
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [MISSING_PAYMENT_DATA, INVALID_PAYMENT_AMOUNT, INVALID_PAYMENT_METHOD, INVALID_DATE_FORMAT, INVOICE_CANCELLED, PAYMENT_EXCEEDS_REMAINING]
+                        description: Type d'erreur standardisé
+              examples:
+                missingData:
+                  summary: Données de paiement incomplètes
+                  value:
+                    message: "Le montant, la méthode et la date de paiement sont requis"
+                    data:
+                      errorType: "MISSING_PAYMENT_DATA"
+                invalidAmount:
+                  summary: Montant de paiement invalide
+                  value:
+                    message: "Le montant du paiement doit être positif"
+                    data:
+                      errorType: "INVALID_PAYMENT_AMOUNT"
+                invalidMethod:
+                  summary: Méthode de paiement invalide
+                  value:
+                    message: "Méthode de paiement invalide. Valeurs acceptées: wave, momo, orange_money, zeepay, cash"
+                    data:
+                      errorType: "INVALID_PAYMENT_METHOD"
+                      validMethods: ["wave", "momo", "orange_money", "zeepay", "cash"]
+                invalidDate:
+                  summary: Format de date invalide
+                  value:
+                    message: "Le format de la date de paiement est invalide"
+                    data:
+                      errorType: "INVALID_DATE_FORMAT"
+                invoiceCancelled:
+                  summary: Facture annulée
+                  value:
+                    message: "Impossible d'ajouter un paiement à une facture annulée"
+                    data:
+                      errorType: "INVOICE_CANCELLED"
+                paymentExceedsRemaining:
+                  summary: Paiement supérieur au montant restant
+                  value:
+                    message: "Le montant du paiement (50000.00) excède le solde restant (30000.00)"
+                    data:
+                      errorType: "PAYMENT_EXCEEDS_REMAINING"
+                      total_amount: 130000.00
+                      already_paid: 100000.00
+                      remaining_amount: 30000.00
+                      payment_attempt: 50000.00
+
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Non authentifié"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [UNAUTHORIZED]
+                        example: "UNAUTHORIZED"
+
+        '403':
+          description: Accès refusé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Rôle insuffisant"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [INSUFFICIENT_PRIVILEGES]
+                        example: "INSUFFICIENT_PRIVILEGES"
+                      requiredRoles:
+                        type: array
+                        items:
+                          type: string
+                        example: ["admin", "superadmin"]
+                      userRole:
+                        type: string
+                        example: "user"
+
+        '404':
+          description: Facture non trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Facture non trouvée"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [INVOICE_NOT_FOUND]
+                        example: "INVOICE_NOT_FOUND"
+
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur interne"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [SERVER_ERROR]
+                        example: "SERVER_ERROR"
+
+      security:
+        - bearerAuth: []

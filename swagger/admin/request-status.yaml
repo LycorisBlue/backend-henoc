@@ -1,0 +1,216 @@
+tags:
+  - name: Admin
+    description: API pour la gestion des demandes client par les administrateurs
+
+paths:
+  /admin/requests/{id}/status:
+    put:
+      tags:
+        - Admin
+      summary: Mettre à jour le statut d'une demande
+      description: Permet de changer le statut d'une demande et d'ajouter un commentaire optionnel
+      operationId: updateRequestStatus
+      
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique de la demande
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+                  description: Nouveau statut de la demande
+                  example: "commandé"
+                comment:
+                  type: string
+                  description: Commentaire optionnel sur le changement de statut
+                  example: "Commande effectuée auprès du fournisseur, délai de livraison estimé à 5 jours"
+      
+      responses:
+        '200':
+          description: Statut mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Statut de la demande mis à jour avec succès"
+                  data:
+                    type: object
+                    properties:
+                      request_id:
+                        type: string
+                        format: uuid
+                        description: Identifiant unique de la demande
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      previous_status:
+                        type: string
+                        enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+                        description: Statut précédent de la demande
+                        example: "facturé"
+                      new_status:
+                        type: string
+                        enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+                        description: Nouveau statut de la demande
+                        example: "commandé"
+                      client:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique du client
+                            example: "550e8400-e29b-41d4-a716-446655440001"
+                          whatsapp_number:
+                            type: string
+                            description: Numéro WhatsApp du client
+                            example: "+2250102030405"
+                          full_name:
+                            type: string
+                            description: Nom complet du client
+                            example: "Jean Dupont"
+                      assigned_admin_id:
+                        type: string
+                        format: uuid
+                        description: Identifiant de l'administrateur assigné à la demande
+                        example: "550e8400-e29b-41d4-a716-446655440002"
+
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message d'erreur descriptif
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [MISSING_STATUS, INVALID_STATUS, NO_INVOICE]
+                        description: Type d'erreur standardisé
+              examples:
+                missingStatus:
+                  summary: Statut non fourni
+                  value:
+                    message: "Le statut est requis"
+                    data:
+                      errorType: "MISSING_STATUS"
+                invalidStatus:
+                  summary: Statut invalide
+                  value:
+                    message: "Statut invalide. Valeurs acceptées: en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé"
+                    data:
+                      errorType: "INVALID_STATUS"
+                      validStatuses: ["en_attente", "en_traitement", "facturé", "payé", "commandé", "expédié", "livré", "annulé"]
+                noInvoice:
+                  summary: Pas de facture pour le statut "facturé"
+                  value:
+                    message: "Impossible de passer la demande au statut \"facturé\" car aucune facture n'est associée"
+                    data:
+                      errorType: "NO_INVOICE"
+
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Non authentifié"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [UNAUTHORIZED]
+                        example: "UNAUTHORIZED"
+
+        '403':
+          description: Accès refusé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Vous n'êtes pas autorisé à modifier le statut de cette demande car vous n'y êtes pas assigné"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [ADMIN_NOT_ASSIGNED]
+                        example: "ADMIN_NOT_ASSIGNED"
+                      request_id:
+                        type: string
+                        format: uuid
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      assigned_admin_id:
+                        type: string
+                        format: uuid
+                        example: "550e8400-e29b-41d4-a716-446655440003"
+
+        '404':
+          description: Demande non trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Demande non trouvée"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [REQUEST_NOT_FOUND]
+                        example: "REQUEST_NOT_FOUND"
+
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur interne"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [SERVER_ERROR]
+                        example: "SERVER_ERROR"
+
+      security:
+        - bearerAuth: []

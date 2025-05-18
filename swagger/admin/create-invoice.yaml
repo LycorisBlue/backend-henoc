@@ -1,0 +1,327 @@
+tags:
+  - name: Admin
+    description: API pour la gestion des demandes client par les administrateurs
+
+paths:
+  /admin/requests/{id}/invoice:
+    post:
+      tags:
+        - Admin
+      summary: Créer une facture
+      description: Crée une nouvelle facture pour une demande client avec ses articles et frais associés
+      operationId: createInvoice
+      
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique de la demande
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+              properties:
+                items:
+                  type: array
+                  description: Liste des articles de la facture
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - unit_price
+                      - quantity
+                    properties:
+                      name:
+                        type: string
+                        description: Nom ou description de l'article
+                        example: "Smartphone XYZ 128Go"
+                      unit_price:
+                        type: number
+                        format: float
+                        description: Prix unitaire de l'article
+                        example: 125000.00
+                      quantity:
+                        type: integer
+                        description: Quantité d'articles
+                        minimum: 1
+                        example: 1
+                fees:
+                  type: array
+                  description: Liste des frais additionnels (optionnel)
+                  items:
+                    type: object
+                    required:
+                      - fee_type_id
+                      - amount
+                    properties:
+                      fee_type_id:
+                        type: string
+                        format: uuid
+                        description: Identifiant du type de frais
+                        example: "550e8400-e29b-41d4-a716-446655440010"
+                      amount:
+                        type: number
+                        format: float
+                        description: Montant des frais
+                        example: 5000.00
+      
+      responses:
+        '201':
+          description: Facture créée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Facture créée avec succès"
+                  data:
+                    type: object
+                    properties:
+                      invoice:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Identifiant unique de la facture
+                            example: "550e8400-e29b-41d4-a716-446655440100"
+                          request_id:
+                            type: string
+                            format: uuid
+                            description: Identifiant de la demande associée
+                            example: "550e8400-e29b-41d4-a716-446655440000"
+                          admin_id:
+                            type: string
+                            format: uuid
+                            description: Identifiant de l'administrateur ayant créé la facture
+                            example: "550e8400-e29b-41d4-a716-446655440002"
+                          total_amount:
+                            type: number
+                            format: float
+                            description: Montant total de la facture
+                            example: 130000.00
+                          status:
+                            type: string
+                            enum: [en_attente, payé, annulé]
+                            description: Statut initial de la facture
+                            example: "en_attente"
+                          created_at:
+                            type: string
+                            format: date-time
+                            description: Date de création de la facture
+                            example: "2025-05-16T20:00:00.000Z"
+                      items:
+                        type: array
+                        description: Articles de la facture
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant unique de l'article
+                              example: "550e8400-e29b-41d4-a716-446655440101"
+                            name:
+                              type: string
+                              description: Nom ou description de l'article
+                              example: "Smartphone XYZ 128Go"
+                            unit_price:
+                              type: number
+                              format: float
+                              description: Prix unitaire de l'article
+                              example: 125000.00
+                            quantity:
+                              type: integer
+                              description: Quantité d'articles
+                              example: 1
+                            subtotal:
+                              type: number
+                              format: float
+                              description: Sous-total pour cet article (unit_price * quantity)
+                              example: 125000.00
+                      fees:
+                        type: array
+                        description: Frais additionnels de la facture
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant unique des frais
+                              example: "550e8400-e29b-41d4-a716-446655440102"
+                            fee_type_id:
+                              type: string
+                              format: uuid
+                              description: Identifiant du type de frais
+                              example: "550e8400-e29b-41d4-a716-446655440010"
+                            amount:
+                              type: number
+                              format: float
+                              description: Montant des frais
+                              example: 5000.00
+
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message d'erreur descriptif
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [MISSING_INVOICE_ITEMS, INVOICE_ALREADY_EXISTS, INVALID_INVOICE_ITEM, INVALID_NUMERIC_VALUE, INVALID_FEE, FEE_TYPE_NOT_FOUND, INVALID_FEE_AMOUNT]
+                        description: Type d'erreur standardisé
+              examples:
+                missingItems:
+                  summary: Éléments de facture manquants
+                  value:
+                    message: "Les éléments de la facture sont requis"
+                    data:
+                      errorType: "MISSING_INVOICE_ITEMS"
+                invoiceExists:
+                  summary: Une facture existe déjà
+                  value:
+                    message: "Une facture existe déjà pour cette demande"
+                    data:
+                      errorType: "INVOICE_ALREADY_EXISTS"
+                      invoice_id: "550e8400-e29b-41d4-a716-446655440100"
+                invalidItem:
+                  summary: Données d'article incomplètes
+                  value:
+                    message: "Chaque élément de facture doit inclure un nom, un prix unitaire et une quantité"
+                    data:
+                      errorType: "INVALID_INVOICE_ITEM"
+                      item: { "name": "Smartphone XYZ", "quantity": 1 }
+                invalidNumeric:
+                  summary: Valeurs numériques invalides
+                  value:
+                    message: "Le prix unitaire et la quantité doivent être des valeurs positives"
+                    data:
+                      errorType: "INVALID_NUMERIC_VALUE"
+                      item: { "name": "Smartphone XYZ", "unit_price": 0, "quantity": 1 }
+                invalidFee:
+                  summary: Données de frais incomplètes
+                  value:
+                    message: "Chaque frais doit inclure un type et un montant"
+                    data:
+                      errorType: "INVALID_FEE"
+                      fee: { "amount": 5000 }
+                feeTypeNotFound:
+                  summary: Type de frais non trouvé
+                  value:
+                    message: "Le type de frais spécifié n'existe pas"
+                    data:
+                      errorType: "FEE_TYPE_NOT_FOUND"
+                      fee_type_id: "550e8400-e29b-41d4-a716-446655440099"
+                invalidFeeAmount:
+                  summary: Montant de frais invalide
+                  value:
+                    message: "Le montant des frais doit être une valeur positive"
+                    data:
+                      errorType: "INVALID_FEE_AMOUNT"
+                      fee: { "fee_type_id": "550e8400-e29b-41d4-a716-446655440010", "amount": 0 }
+
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Non authentifié"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [UNAUTHORIZED]
+                        example: "UNAUTHORIZED"
+
+        '403':
+          description: Accès refusé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Vous n'êtes pas autorisé à créer une facture pour cette demande car vous n'y êtes pas assigné"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [ADMIN_NOT_ASSIGNED]
+                        example: "ADMIN_NOT_ASSIGNED"
+                      request_id:
+                        type: string
+                        format: uuid
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      assigned_admin_id:
+                        type: string
+                        format: uuid
+                        example: "550e8400-e29b-41d4-a716-446655440003"
+
+        '404':
+          description: Demande non trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Demande non trouvée"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        enum: [REQUEST_NOT_FOUND]
+                        example: "REQUEST_NOT_FOUND"
+
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur interne"
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Internal server error message"
+                      errorType:
+                        type: string
+                        enum: [SERVER_ERROR]
+                        example: "SERVER_ERROR"
+
+      security:
+        - bearerAuth: []
