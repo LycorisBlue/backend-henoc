@@ -114,7 +114,7 @@ router.get('/:id', async (req, res) => {
             total_amount: invoice.total_amount,
             status: invoice.status,
             created_at: invoice.created_at,
-            updated_at: invoice.updated_at,
+            updated_at: invoice.updatedAt,
             permissions: {
                 can_modify: canModify
             },

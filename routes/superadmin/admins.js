@@ -218,7 +218,7 @@ router.put('/:id', async (req, res) => {
             name: admin.name,
             email: admin.email,
             role: admin.role,
-            updated_at: admin.updated_at
+            updated_at: admin.updatedAt
         };
 
         logData.message = 'Administrateur mis à jour avec succès';

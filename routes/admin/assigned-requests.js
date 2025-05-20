@@ -95,7 +95,7 @@ router.get('/assigned-to-me', async (req, res) => {
                     full_name: request.client.full_name
                 },
                 created_at: request.createdAt,
-                updated_at: request.updated_at
+                updated_at: request.updatedAt
             })),
             pagination
         };

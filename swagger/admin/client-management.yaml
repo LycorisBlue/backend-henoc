@@ -1,0 +1,189 @@
+# swagger/admin/client-management.yaml
+openapi: 3.0.0
+info:
+  title: API Gestion des Clients
+  description: Endpoints pour vérifier et enregistrer des clients par numéro WhatsApp
+  version: 1.0.0
+
+paths:
+  /admin/clients/check-whatsapp/{number}:
+    get:
+      tags:
+        - Gestion des Clients
+      summary: Vérifier si un numéro WhatsApp est enregistré
+      description: Vérifie si un numéro WhatsApp est déjà enregistré dans la base de données et renvoie les informations associées si disponibles.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: number
+          required: true
+          schema:
+            type: string
+          description: Numéro WhatsApp au format international (ex +2250102030405)
+      responses:
+        '200':
+          description: Vérification effectuée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Le numéro WhatsApp est déjà enregistré
+                  data:
+                    type: object
+                    properties:
+                      whatsapp_number:
+                        type: string
+                        example: "+2250102030405"
+                      exists:
+                        type: boolean
+                        example: true
+                      client:
+                        type: object
+                        nullable: true
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            example: 123e4567-e89b-12d3-a456-426614174000
+                          full_name:
+                            type: string
+                            nullable: true
+                            example: "Jean Dupont"
+                          email:
+                            type: string
+                            nullable: true
+                            example: "jean.dupont@example.com"
+                          adresse:
+                            type: string
+                            nullable: true
+                            example: "123 Rue Exemple, Abidjan"
+                          created_at:
+                            type: string
+                            format: date-time
+                            example: "2025-05-17T09:30:00Z"
+        '400':
+          description: Format de numéro invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Format du numéro WhatsApp invalide. Utilisez le format international (ex +2250102030405)
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        example: INVALID_WHATSAPP_NUMBER_FORMAT
+        '401':
+          description: Non autorisé - Authentification requise
+        '500':
+          description: Erreur serveur
+
+  /admin/clients/register-client:
+    post:
+      tags:
+        - Gestion des Clients
+      summary: Enregistrer ou mettre à jour un client
+      description: Enregistre un nouveau client ou met à jour les informations d'un client existant à partir de son numéro WhatsApp.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - whatsapp_number
+              properties:
+                whatsapp_number:
+                  type: string
+                  example: "+2250102030405"
+                  description: Numéro WhatsApp au format international
+                full_name:
+                  type: string
+                  example: "Jean Dupont"
+                  description: Nom complet du client
+                email:
+                  type: string
+                  example: "jean.dupont@example.com"
+                  description: Adresse email du client
+                adresse:
+                  type: string
+                  example: "123 Rue Exemple, Abidjan"
+                  description: Adresse physique du client
+      responses:
+        '200':
+          description: Client enregistré ou mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Nouveau client enregistré avec succès
+                  data:
+                    type: object
+                    properties:
+                      client:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            example: 123e4567-e89b-12d3-a456-426614174000
+                          whatsapp_number:
+                            type: string
+                            example: "+2250102030405"
+                          full_name:
+                            type: string
+                            nullable: true
+                            example: "Jean Dupont"
+                          email:
+                            type: string
+                            nullable: true
+                            example: "jean.dupont@example.com"
+                          adresse:
+                            type: string
+                            nullable: true
+                            example: "123 Rue Exemple, Abidjan"
+                          created_at:
+                            type: string
+                            format: date-time
+                            example: "2025-05-17T09:30:00Z"
+                          updated_at:
+                            type: string
+                            format: date-time
+                            example: "2025-05-17T09:30:00Z"
+                      is_new_client:
+                        type: boolean
+                        example: true
+                        description: Indique s'il s'agit d'un nouveau client ou d'une mise à jour
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Le numéro WhatsApp est obligatoire
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        example: MISSING_WHATSAPP_NUMBER
+        '401':
+          description: Non autorisé - Authentification requise
+        '500':
+          description: Erreur serveur

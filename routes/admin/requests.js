@@ -116,7 +116,7 @@ router.get('/', async (req, res) => {
                 },
                 assigned_admin_id: request.assigned_admin_id,
                 created_at: request.createdAt,
-                updated_at: request.updated_at
+                updated_at: request.updatedAt
             })),
             pagination
         };
