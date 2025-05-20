@@ -1,0 +1,169 @@
+# swagger/admin/assigned-requests.yaml
+openapi: 3.0.0
+info:
+  title: API Demandes Assignées
+  description: Endpoints pour gérer les demandes assignées à un administrateur
+  version: 1.0.0
+
+paths:
+  /admin/assigned-requests/assigned-to-me:
+    get:
+      tags:
+        - Demandes Assignées
+      summary: Récupérer les demandes assignées à l'administrateur connecté
+      description: Renvoie la liste paginée des demandes assignées à l'administrateur actuellement authentifié, avec possibilité de filtrage par statut.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+          description: Filtrer par statut de la demande
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page pour la pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre d'éléments par page
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+            default: created_at
+            enum: [id, created_at, updated_at, status]
+          description: Champ sur lequel effectuer le tri
+        - in: query
+          name: sort_order
+          schema:
+            type: string
+            default: DESC
+            enum: [ASC, DESC]
+          description: Ordre de tri (ascendant ou descendant)
+      responses:
+        '200':
+          description: Liste des demandes assignées récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Liste des demandes assignées
+                  data:
+                    type: object
+                    properties:
+                      requests:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              example: 123e4567-e89b-12d3-a456-426614174000
+                            status:
+                              type: string
+                              enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
+                              example: en_traitement
+                            client:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  format: uuid
+                                  example: 123e4567-e89b-12d3-a456-426614174001
+                                whatsapp_number:
+                                  type: string
+                                  example: "+2250101020304"
+                                full_name:
+                                  type: string
+                                  example: "Jean Dupont"
+                            created_at:
+                              type: string
+                              format: date-time
+                              example: "2025-05-17T09:30:00Z"
+                            updated_at:
+                              type: string
+                              format: date-time
+                              example: "2025-05-17T10:45:00Z"
+                      pagination:
+                        type: object
+                        properties:
+                          total_items:
+                            type: integer
+                            example: 25
+                          total_pages:
+                            type: integer
+                            example: 3
+                          current_page:
+                            type: integer
+                            example: 1
+                          items_per_page:
+                            type: integer
+                            example: 10
+                          has_next_page:
+                            type: boolean
+                            example: true
+                          has_previous_page:
+                            type: boolean
+                            example: false
+        '401':
+          description: Non autorisé - Authentification requise
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Non authentifié
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        example: UNAUTHORIZED
+        '403':
+          description: Accès refusé - Privilèges insuffisants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Rôle insuffisant
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        example: INSUFFICIENT_PRIVILEGES
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Erreur interne
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Message d'erreur détaillé
+                      errorType:
+                        type: string
+                        example: SERVER_ERROR
