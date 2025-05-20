@@ -38,10 +38,13 @@ const loginLimiter = rateLimit({
     message: { message: 'Trop de tentatives de connexion. Réessayez plus tard.' }
 });
 
-// 🌐 CORS
-if (['development', 'test'].includes(process.env.NODE_ENV)) {
-    app.use(cors({ origin: '*' }));
-}
+// 🌐 CORS - Configuration mise à jour
+app.use(cors({
+    origin: '*', // Spécifiez l'origine exacte du frontend au lieu de '*'
+    credentials: true,               // Autoriser les credentials (cookies, en-têtes d'auth)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // 🔐 Sécurité
 app.use(helmet());

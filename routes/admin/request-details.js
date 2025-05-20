@@ -99,8 +99,8 @@ router.get('/:id', async (req, res) => {
             id: request.id,
             description: request.description,
             status: request.status,
-            created_at: request.created_at,
-            updated_at: request.updated_at,
+            created_at: request.createdAt,
+            updated_at: request.updatedAt,
             // Ajouter la clé de permission
             permissions: {
                 can_modify: canModify
@@ -116,7 +116,7 @@ router.get('/:id', async (req, res) => {
                 id: link.id,
                 url: link.url,
                 note: link.note,
-                created_at: link.created_at
+                created_at: link.createdAt
             })),
             assigned_admin: request.assigned_admin ? {
                 id: request.assigned_admin.id,
@@ -128,7 +128,7 @@ router.get('/:id', async (req, res) => {
                 id: request.invoice.id,
                 total_amount: request.invoice.total_amount,
                 status: request.invoice.status,
-                created_at: request.invoice.created_at,
+                created_at: request.invoice.createdAt,
                 payments: payments.map(payment => ({
                     id: payment.id,
                     amount_paid: payment.amount_paid,
@@ -145,7 +145,7 @@ router.get('/:id', async (req, res) => {
                 previous_status: log.previous_status,
                 new_status: log.new_status,
                 comment: log.comment,
-                created_at: log.created_at,
+                created_at: log.createdAt,
                 admin: log.admin ? {
                     id: log.admin.id,
                     name: log.admin.name

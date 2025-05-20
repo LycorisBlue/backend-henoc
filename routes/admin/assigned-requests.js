@@ -1,4 +1,4 @@
-// routes/admin/requests.js
+// routes/admin/assigned-requests.js
 const express = require('express');
 const router = express.Router();
 const { Request, Client, ProductLink } = require('../../models');
@@ -7,16 +7,14 @@ const Logger = require('../../utils/Logger');
 const { Op } = require('sequelize');
 
 /**
- * Récupérer la liste des demandes avec filtres optionnels
+ * Récupérer la liste des demandes assignées à l'administrateur connecté
  */
-router.get('/', async (req, res) => {
+router.get('/assigned-to-me', async (req, res) => {
+    const adminId = req.admin.id;
+
     // Récupération des paramètres de filtrage et pagination
     const {
         status,
-        client_id,
-        whatsapp_number,
-        assigned_admin_id,
-        unassigned,
         page = 1,
         limit = 10,
         sort_by = 'created_at',
@@ -25,12 +23,12 @@ router.get('/', async (req, res) => {
 
     const logData = {
         message: '',
-        source: 'admin/requests',
-        userId: req.admin?.id,
-        action: 'LIST_REQUESTS',
+        source: 'admin/assigned-requests',
+        userId: adminId,
+        action: 'LIST_ASSIGNED_REQUESTS',
         ipAddress: req.ip,
         requestData: {
-            filters: { status, client_id, whatsapp_number, assigned_admin_id, unassigned },
+            filters: { status },
             pagination: { page, limit },
             sorting: { sort_by, sort_order }
         },
@@ -41,21 +39,12 @@ router.get('/', async (req, res) => {
 
     try {
         // Construction des conditions de filtrage
-        const whereConditions = {};
+        const whereConditions = {
+            assigned_admin_id: adminId // Filtrer uniquement les demandes assignées à l'admin connecté
+        };
 
         if (status) {
             whereConditions.status = status;
-        }
-
-        if (client_id) {
-            whereConditions.client_id = client_id;
-        }
-
-        // Gérer le filtre par administrateur assigné ou non assigné
-        if (unassigned === 'true') {
-            whereConditions.assigned_admin_id = null;
-        } else if (assigned_admin_id) {
-            whereConditions.assigned_admin_id = assigned_admin_id;
         }
 
         // Configuration de la pagination
@@ -73,15 +62,6 @@ router.get('/', async (req, res) => {
                 attributes: ['id', 'whatsapp_number', 'full_name']
             }
         ];
-
-        // Ajout du filtre sur le numéro WhatsApp si fourni
-        if (whatsapp_number) {
-            includeOptions[0].where = {
-                whatsapp_number: {
-                    [Op.like]: `%${whatsapp_number}%`
-                }
-            };
-        }
 
         // Requête avec pagination, filtres et inclusion des relations
         const { count, rows: requests } = await Request.findAndCountAll({
@@ -114,21 +94,20 @@ router.get('/', async (req, res) => {
                     whatsapp_number: request.client.whatsapp_number,
                     full_name: request.client.full_name
                 },
-                assigned_admin_id: request.assigned_admin_id,
                 created_at: request.createdAt,
                 updated_at: request.updated_at
             })),
             pagination
         };
 
-        logData.message = 'Liste des demandes récupérée avec succès';
+        logData.message = 'Liste des demandes assignées récupérée avec succès';
         logData.status = 'SUCCESS';
         logData.responseData = { count, page, limit };
         await Logger.logEvent(logData);
 
-        return ApiResponse.success(res, 'Liste des demandes', responseData);
+        return ApiResponse.success(res, 'Liste des demandes assignées', responseData);
     } catch (error) {
-        logData.message = 'Erreur lors de la récupération des demandes';
+        logData.message = 'Erreur lors de la récupération des demandes assignées';
         logData.status = 'FAILED';
         logData.responseData = { error: error.message, errorType: 'SERVER_ERROR' };
         await Logger.logEvent(logData);

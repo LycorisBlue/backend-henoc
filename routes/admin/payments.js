@@ -188,7 +188,7 @@ router.get('/', async (req, res) => {
                 method: payment.method,
                 payment_date: payment.payment_date,
                 reference: payment.reference,
-                created_at: payment.created_at,
+                created_at: payment.createdAt,
                 invoice: {
                     id: payment.invoice.id,
                     total_amount: payment.invoice.total_amount,
