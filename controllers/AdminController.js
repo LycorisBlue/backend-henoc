@@ -16,6 +16,9 @@ const invoiceDetails = require('../routes/' + service + '/invoice-details');
 const createPayment = require('../routes/' + service + '/create-payment');
 const payments = require('../routes/' + service + '/payments');
 const clientManagement = require('../routes/' + service + '/client-management'); // Nouvelle route
+const assignedRequests = require('../routes/' + service + '/assigned-requests'); // Nouvelle route
+const feeTypes = require('../routes/' + service + '/fee-types');
+
 
 // Utilisation des routes avec middleware d'authentification
 router.use('/requests', authenticate(), authorize(['admin', 'superadmin']), requests);
@@ -28,5 +31,9 @@ router.use('/invoices', authenticate(), authorize(['admin', 'superadmin']), invo
 router.use('/invoices', authenticate(), authorize(['admin', 'superadmin']), createPayment);
 router.use('/payments', authenticate(), authorize(['admin', 'superadmin']), payments);
 router.use('/clients', authenticate(), authorize(['admin', 'superadmin']), clientManagement); // Nouvelle route
+router.use('/assigned-requests', authenticate(), authorize(['admin', 'superadmin']), assignedRequests); // Nouvelle route
+router.use('/fee-types', authenticate(), authorize(['admin', 'superadmin']), feeTypes);
+
+
 
 module.exports = router;

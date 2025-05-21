@@ -16,7 +16,7 @@ router.get('/check-whatsapp/:number', async (req, res) => {
         message: '',
         source: 'admin/client-management',
         userId: adminId,
-        action: 'CHECK_WHATSAPP_NUMBER',
+        action: 'CHECK_WHATSAPP_INFO',
         ipAddress: req.ip,
         requestData: { whatsapp_number: whatsappNumber },
         responseData: null,
@@ -43,10 +43,17 @@ router.get('/check-whatsapp/:number', async (req, res) => {
             where: { whatsapp_number: whatsappNumber }
         });
 
-        // Préparer la réponse
+        // Vérifier si les informations du client sont complètes
+        const hasCompleteInfo = client && (
+            (client.full_name && client.full_name.trim() !== '') ||
+            (client.email && client.email.trim() !== '') ||
+            (client.adresse && client.adresse.trim() !== '')
+        );
+
+        // Préparer la réponse - exists indique si le client a des informations complètes
         const responseData = {
             whatsapp_number: whatsappNumber,
-            exists: !!client,
+            exists: hasCompleteInfo, // Modification ici: exists reflète si des informations complètes existent
             client: client ? {
                 id: client.id,
                 full_name: client.full_name || null,
@@ -56,28 +63,34 @@ router.get('/check-whatsapp/:number', async (req, res) => {
             } : null
         };
 
-        logData.message = 'Vérification du numéro WhatsApp effectuée';
+        logData.message = 'Vérification des informations du numéro WhatsApp effectuée';
         logData.status = 'SUCCESS';
-        logData.responseData = { exists: !!client };
+        logData.responseData = {
+            exists: hasCompleteInfo, // Cohérent avec la réponse
+            client_in_database: !!client
+        };
         await Logger.logEvent(logData);
 
-        return ApiResponse.success(
-            res,
-            client
-                ? 'Le numéro WhatsApp est déjà enregistré'
-                : 'Le numéro WhatsApp n\'est pas enregistré',
-            responseData
-        );
+        let message;
+        if (!client) {
+            message = 'Le numéro WhatsApp n\'est pas enregistré';
+        } else if (hasCompleteInfo) {
+            message = 'Le numéro WhatsApp a des informations complètes enregistrées';
+        } else {
+            message = 'Le numéro WhatsApp est enregistré mais les informations sont incomplètes';
+        }
+
+        return ApiResponse.success(res, message, responseData);
 
     } catch (error) {
-        logData.message = 'Erreur lors de la vérification du numéro WhatsApp';
+        logData.message = 'Erreur lors de la vérification des informations du numéro WhatsApp';
         logData.status = 'FAILED';
         logData.responseData = { error: error.message, errorType: 'SERVER_ERROR' };
         await Logger.logEvent(logData);
 
         return ApiResponse.serverError(
             res,
-            'Une erreur est survenue lors de la vérification du numéro WhatsApp',
+            'Une erreur est survenue lors de la vérification des informations du numéro WhatsApp',
             { error: error.message }
         );
     }

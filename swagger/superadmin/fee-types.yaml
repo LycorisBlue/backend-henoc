@@ -1,0 +1,415 @@
+# swagger/superadmin/fee-types.yaml
+
+openapi: 3.0.0
+paths:
+  /superadmin/fee-types:
+    post:
+      tags:
+        - Types de frais (Superadmin)
+      summary: Créer un nouveau type de frais
+      description: Permet à un superadmin de créer un nouveau type de frais qui pourra être appliqué aux factures.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Nom du type de frais
+                  example: "Frais de livraison"
+                description:
+                  type: string
+                  description: Description détaillée du type de frais (optionnel)
+                  example: "Frais appliqués pour la livraison internationale"
+      responses:
+        '201':
+          description: Type de frais créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Type de frais créé avec succès"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: string
+                        example: "Frais de livraison"
+                      description:
+                        type: string
+                        example: "Frais appliqués pour la livraison internationale"
+                      created_by:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174001"
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: "2025-05-20T14:30:00.000Z"
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Le nom du type de frais est obligatoire"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        example: "MISSING_NAME"
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+    get:
+      tags:
+        - Types de frais (Superadmin)
+      summary: Récupérer tous les types de frais
+      description: Permet à un superadmin de récupérer la liste complète des types de frais.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des types de frais récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Liste des types de frais"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        name:
+                          type: string
+                          example: "Frais de livraison"
+                        description:
+                          type: string
+                          example: "Frais appliqués pour la livraison internationale"
+                        created_by:
+                          type: string
+                          format: uuid
+                          example: "123e4567-e89b-12d3-a456-426614174001"
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: "2025-05-20T14:30:00.000Z"
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+  /superadmin/fee-types/{id}:
+    put:
+      tags:
+        - Types de frais (Superadmin)
+      summary: Modifier un type de frais
+      description: Permet à un superadmin de modifier un type de frais existant.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Identifiant unique du type de frais
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nouveau nom du type de frais
+                  example: "Frais de livraison express"
+                description:
+                  type: string
+                  description: Nouvelle description du type de frais
+                  example: "Frais appliqués pour la livraison internationale express"
+      responses:
+        '200':
+          description: Type de frais mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Type de frais mis à jour avec succès"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: string
+                        example: "Frais de livraison express"
+                      description:
+                        type: string
+                        example: "Frais appliqués pour la livraison internationale express"
+                      created_by:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174001"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: "2025-05-20T16:45:00.000Z"
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Aucune donnée fournie pour la mise à jour"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        example: "NO_DATA_PROVIDED"
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: Type de frais non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Type de frais non trouvé"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        example: "FEE_TYPE_NOT_FOUND"
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+    delete:
+      tags:
+        - Types de frais (Superadmin)
+      summary: Supprimer un type de frais
+      description: Permet à un superadmin de supprimer un type de frais (impossible si utilisé dans des factures).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Identifiant unique du type de frais
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Type de frais supprimé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Type de frais supprimé avec succès"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: string
+                        example: "Frais de livraison"
+        '400':
+          description: Impossible de supprimer (type de frais utilisé)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Ce type de frais est utilisé dans 3 facture(s) et ne peut pas être supprimé"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        example: "FEE_TYPE_IN_USE"
+                      usage_count:
+                        type: integer
+                        example: 3
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: Type de frais non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Type de frais non trouvé"
+                  data:
+                    type: object
+                    properties:
+                      errorType:
+                        type: string
+                        example: "FEE_TYPE_NOT_FOUND"
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+# Documentation pour la route admin (consultation seulement)
+  /admin/fee-types:
+    get:
+      tags:
+        - Types de frais (Admin)
+      summary: Récupérer tous les types de frais
+      description: Permet à un admin de récupérer la liste des types de frais disponibles pour les factures.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des types de frais récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Liste des types de frais"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        name:
+                          type: string
+                          example: "Frais de livraison"
+                        description:
+                          type: string
+                          example: "Frais appliqués pour la livraison internationale"
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: "2025-05-20T14:30:00.000Z"
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+components:
+  schemas:
+    UnauthorizedError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Non autorisé"
+        data:
+          type: object
+          properties:
+            errorType:
+              type: string
+              example: "UNAUTHORIZED"
+    ServerError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Erreur interne"
+        data:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Error message details"
+            errorType:
+              type: string
+              example: "SERVER_ERROR"
