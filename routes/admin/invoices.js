@@ -203,7 +203,7 @@ router.get('/', async (req, res) => {
                     id: invoice.id,
                     total_amount: invoice.total_amount,
                     status: invoice.status,
-                    created_at: invoice.created_at,
+                    created_at: invoice.createdAt,
                     payment_status: totalPaid >= totalAmount ? 'paid' : totalPaid > 0 ? 'partial' : 'unpaid',
                     amount_paid: totalPaid,
                     remaining_amount: remainingAmount,

@@ -113,7 +113,7 @@ router.get('/:id', async (req, res) => {
             admin_id: invoice.admin_id,
             total_amount: invoice.total_amount,
             status: invoice.status,
-            created_at: invoice.created_at,
+            created_at: invoice.createdAt,
             updated_at: invoice.updatedAt,
             permissions: {
                 can_modify: canModify
@@ -140,7 +140,7 @@ router.get('/:id', async (req, res) => {
                 id: invoice.request.id,
                 description: invoice.request.description,
                 status: invoice.request.status,
-                created_at: invoice.request.created_at
+                created_at: invoice.request.createdAt
             },
             admin: {
                 id: invoice.admin.id,
@@ -174,7 +174,7 @@ router.get('/:id', async (req, res) => {
                     name: payment.confirmer.name,
                     email: payment.confirmer.email
                 } : null,
-                created_at: payment.created_at
+                created_at: payment.createAt
             }))
         };
 
