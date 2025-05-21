@@ -8,7 +8,7 @@ module.exports = {
 
     await queryInterface.bulkInsert('admins', [
       {
-        id: crypto.randomUUID(),
+        id: "61a639aa-8e7e-4e64-a0b7-59294a538d9a",
         name: 'Admin Principal',
         email: 'admin@example.com',
         password: hashedPassword,
@@ -17,7 +17,7 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        id: crypto.randomUUID(),
+        id: "8ec85df4-b21f-41fa-8b6a-6e49b293f3bd",
         name: 'Super Admin',
         email: 'superadmin@example.com',
         password: hashedSuperPassword,
