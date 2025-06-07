@@ -20,7 +20,14 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         validate: {
           notEmpty: true,
-          len: [10, 20]
+          len: [10, 35], // Augmenté pour supporter 2 numéros
+          isValidWhatsAppFormat(value) {
+            // Validation personnalisée pour 1 ou 2 numéros
+            const regex = /^\+\d{10,15}(\/\+\d{10,15})?$/;
+            if (!regex.test(value)) {
+              throw new Error('Format de numéro WhatsApp invalide. Utilisez +225xxxxxxxx ou +225xxxxxxxx/+225yyyyyyyy');
+            }
+          }
         }
       },
       full_name: {

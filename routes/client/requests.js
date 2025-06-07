@@ -64,14 +64,15 @@ router.post('/', async (req, res) => {
         }
 
         // Valider le format du numéro WhatsApp
-        if (!/^\+\d{10,15}$/.test(whatsapp_number)) {
+        const whatsappRegex = /^\+\d{10,15}(\/\+\d{10,15})?$/;
+        if (!whatsappRegex.test(whatsapp_number)) {
             logData.message = 'Format du numéro WhatsApp invalide';
             logData.status = 'FAILED';
             logData.responseData = { errorType: 'INVALID_WHATSAPP_NUMBER_FORMAT' };
             await Logger.logEvent(logData);
             return ApiResponse.badRequest(
                 res,
-                'Format du numéro WhatsApp invalide. Utilisez le format international (ex: +2250102030405)',
+                'Format du numéro WhatsApp invalide. Utilisez le format international (ex: +2250102030405 ou +2250102030405/+2250102030406)',
                 logData.responseData
             );
         }

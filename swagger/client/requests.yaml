@@ -8,7 +8,7 @@ paths:
       tags:
         - Client
       summary: Créer une nouvelle demande
-      description: Permet de soumettre une nouvelle demande avec des liens de produits et/ou une description
+      description: Permet de soumettre une nouvelle demande avec des liens de produits et/ou une description. Support pour un ou deux numéros WhatsApp.
       operationId: createRequest
       
       requestBody:
@@ -22,8 +22,16 @@ paths:
               properties:
                 whatsapp_number:
                   type: string
-                  description: Numéro WhatsApp du client au format international
-                  example: "+2250102030405"
+                  description: |
+                    Numéro WhatsApp du client au format international.
+                    - Format simple: "+2250102030405"
+                    - Format double: "+2250102030405/+2250102030406" (principal/joignable)
+                  pattern: '^\+\d{10,15}(\/\+\d{10,15})?$'
+                  minLength: 12
+                  maxLength: 35
+                  examples:
+                    - "+2250102030405"
+                    - "+2250102030405/+2250102030406"
                 product_links:
                   type: array
                   description: Liste des liens vers les produits demandés
@@ -70,8 +78,12 @@ paths:
                             example: "550e8400-e29b-41d4-a716-446655440000"
                           whatsapp_number:
                             type: string
-                            description: Numéro WhatsApp du client
-                            example: "+2250102030405"
+                            description: |
+                              Numéro(s) WhatsApp du client.
+                              Format: "+2250102030405" ou "+2250102030405/+2250102030406"
+                            examples:
+                              - "+2250102030405"
+                              - "+2250102030405/+2250102030406"
                           is_new_client:
                             type: boolean
                             description: Indique si le client a été créé lors de cette demande
@@ -136,7 +148,7 @@ paths:
                 invalidWhatsappFormat:
                   summary: Format de numéro WhatsApp invalide
                   value:
-                    message: "Format du numéro WhatsApp invalide. Utilisez le format international (ex: +2250102030405)"
+                    message: "Format du numéro WhatsApp invalide. Utilisez le format international (ex: +2250102030405 ou +2250102030405/+2250102030406)"
                     data:
                       errorType: "INVALID_WHATSAPP_NUMBER_FORMAT"
 
@@ -162,3 +174,21 @@ paths:
                         example: "SERVER_ERROR"
 
       security: [] # Pas d'authentification requise pour cette route
+
+# Schéma de composant réutilisable pour WhatsApp
+components:
+  schemas:
+    WhatsAppNumber:
+      type: string
+      description: |
+        Numéro WhatsApp au format international.
+        - Format simple: un seul numéro "+2250102030405"
+        - Format double: deux numéros séparés par "/" "+2250102030405/+2250102030406"
+        Le premier numéro est considéré comme principal, le second comme numéro joignable.
+      pattern: '^\+\d{10,15}(\/\+\d{10,15})?$'
+      minLength: 12
+      maxLength: 35
+      examples:
+        - "+2250102030405"
+        - "+2250102030405/+2250102030406"
+        - "+33123456789/+33987654321"
