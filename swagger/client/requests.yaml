@@ -175,7 +175,7 @@ paths:
 
       security: [] # Pas d'authentification requise pour cette route
 
-# Schéma composant réutilisable pour WhatsApp
+# Schéma de composant réutilisable pour WhatsApp
 components:
   schemas:
     WhatsAppNumber:
