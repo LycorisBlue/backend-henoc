@@ -18,6 +18,8 @@ const payments = require('../routes/' + service + '/payments');
 const clientManagement = require('../routes/' + service + '/client-management'); // Nouvelle route
 const assignedRequests = require('../routes/' + service + '/assigned-requests'); // Nouvelle route
 const feeTypes = require('../routes/' + service + '/fee-types');
+const generateInvoicePdf = require('../routes/admin/generate-invoice-pdf');
+
 
 
 // Utilisation des routes avec middleware d'authentification
@@ -33,6 +35,8 @@ router.use('/payments', authenticate(), authorize(['admin', 'superadmin']), paym
 router.use('/clients', authenticate(), authorize(['admin', 'superadmin']), clientManagement); // Nouvelle route
 router.use('/assigned-requests', authenticate(), authorize(['admin', 'superadmin']), assignedRequests); // Nouvelle route
 router.use('/fee-types', authenticate(), authorize(['admin', 'superadmin']), feeTypes);
+router.use('/invoices', authenticate(), authorize(['admin', 'superadmin']), generateInvoicePdf);
+
 
 
 

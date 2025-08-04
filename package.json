@@ -37,6 +37,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "~1.9.1",
     "mysql2": "^3.14.1",
+    "puppeteer": "^24.15.0",
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
     "swagger-jsdoc": "^6.2.8",
