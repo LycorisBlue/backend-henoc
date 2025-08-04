@@ -16,7 +16,16 @@ class PdfService {
         if (!this.browser) {
             this.browser = await puppeteer.launch({
                 headless: 'new',
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--single-process',
+                    '--disable-gpu'
+                ]
             });
         }
         return this.browser;
@@ -37,7 +46,13 @@ class PdfService {
      */
     async loadTemplate(templateName) {
         const templatePath = path.join(this.templatesPath, templateName);
-        return await fs.readFile(templatePath, 'utf-8');
+        let template = await fs.readFile(templatePath, 'utf-8');
+
+        // Remplacer le placeholder du logo
+        const logoBase64 = await this.getCompanyLogoBase64();
+        template = template.replace(/{{LOGO_BASE64}}/g, logoBase64);
+
+        return template;
     }
 
     /**
@@ -135,10 +150,10 @@ class PdfService {
         // Lignes d'articles
         const itemsRows = items.map(item => `
             <tr>
-                <td>${item.name}</td>
-                <td class="text-center">${item.quantity}</td>
+                <td style="font-weight: 500;">${item.name}</td>
+                <td class="text-center" style="color: #E67E22; font-weight: bold;">${item.quantity}</td>
                 <td class="text-right">${this.formatCurrency(item.unit_price)}</td>
-                <td class="text-right">${this.formatCurrency(item.subtotal)}</td>
+                <td class="text-right" style="font-weight: bold; color: #D35400;">${this.formatCurrency(item.subtotal)}</td>
             </tr>
         `).join('');
         pageHtml = pageHtml.replace('{{ITEMS_ROWS}}', itemsRows);
@@ -146,6 +161,10 @@ class PdfService {
         // Section totaux (uniquement dernière page)
         const totalsSection = isLastPage ? this.buildTotalsSection(invoice, fees) : '';
         pageHtml = pageHtml.replace('{{TOTALS_SECTION}}', totalsSection);
+
+        // Note de bas de page (uniquement dernière page)
+        const footerNote = isLastPage ? this.buildFooterNote() : '';
+        pageHtml = pageHtml.replace('{{FOOTER_NOTE}}', footerNote);
 
         return pageHtml;
     }
@@ -157,10 +176,12 @@ class PdfService {
         return `
             <div class="client-info">
                 <h3>Facturé à :</h3>
-                <div><strong>${client.full_name || 'Client'}</strong></div>
-                <div>WhatsApp: ${client.whatsapp_number || 'N/A'}</div>
-                ${client.email ? `<div>Email: ${client.email}</div>` : ''}
-                ${client.adresse ? `<div>Adresse: ${client.adresse}</div>` : ''}
+                <div class="client-details">
+                    <div style="font-weight: bold; margin-bottom: 5px;">${client.full_name || 'Client'}</div>
+                    <div>WhatsApp: ${client.whatsapp_number || 'N/A'}</div>
+                    ${client.email ? `<div>Email: ${client.email}</div>` : ''}
+                    ${client.adresse ? `<div>Adresse: ${client.adresse}</div>` : ''}
+                </div>
             </div>
         `;
     }
@@ -176,7 +197,7 @@ class PdfService {
         let totalsHtml = `
             <div class="totals-section">
                 <div class="total-line">
-                    <span>Sous-total:</span>
+                    <span>Sous-total articles:</span>
                     <span>${this.formatCurrency(subtotal)}</span>
                 </div>
         `;
@@ -184,7 +205,7 @@ class PdfService {
         fees.forEach(fee => {
             totalsHtml += `
                 <div class="total-line">
-                    <span>${fee.name || 'Frais'}:</span>
+                    <span>${fee.name}:</span>
                     <span>${this.formatCurrency(fee.amount)}</span>
                 </div>
             `;
@@ -192,7 +213,7 @@ class PdfService {
 
         totalsHtml += `
                 <div class="total-line final">
-                    <span>TOTAL:</span>
+                    <span>TOTAL À PAYER:</span>
                     <span>${this.formatCurrency(total)}</span>
                 </div>
             </div>
@@ -203,13 +224,25 @@ class PdfService {
     }
 
     /**
+     * Construit la note de bas de page
+     */
+    buildFooterNote() {
+        return `
+            <div class="footer-note">
+                <strong>Mon Fournisseur 2.0</strong> - Merci de votre confiance !<br>
+                Cette facture est générée électroniquement et ne nécessite pas de signature.<br>
+                Pour toute question concernant cette facture, contactez-nous au +225 XX XX XX XX
+            </div>
+        `;
+    }
+
+    /**
      * Template d'en-tête
      */
     getHeaderTemplate() {
         return `
-            <div style="font-size: 8px; padding: 5px 10px; width: 100%; text-align: center; color: #666;">
-                <img src="data:image/svg+xml;base64,${this.getLogoBase64()}" style="height: 20px; margin-right: 10px;">
-                Excellence & Innovation - Votre partenaire de confiance
+            <div style="font-size: 8px; padding: 5px 10px; width: 100%; text-align: center; color: #E67E22; border-bottom: 1px solid #E67E22;">
+                <strong>Mon Fournisseur 2.0</strong> - Excellence & Innovation - Votre partenaire logistique de confiance
             </div>
         `;
     }
@@ -219,20 +252,36 @@ class PdfService {
      */
     getFooterTemplate() {
         return `
-            <div style="font-size: 8px; padding: 5px 10px; width: 100%; text-align: center; color: #666; border-top: 1px solid #ddd;">
-                "L'excellence n'est pas un acte, mais une habitude" - Votre Entreprise
+            <div style="font-size: 8px; padding: 5px 10px; width: 100%; text-align: center; color: #D35400; border-top: 1px solid #E67E22;">
+                "Ensemble, faisons grandir votre business" - Mon Fournisseur 2.0 | www.monfournisseur2.com
             </div>
         `;
     }
 
     /**
-     * Logo en base64
+     * Logo de l'entreprise en base64
      */
-    getLogoBase64() {
+    async getCompanyLogoBase64() {
+        try {
+            const logoPath = path.join(__dirname, '../assets/logo.png');
+            const logoBuffer = await fs.readFile(logoPath);
+            return logoBuffer.toString('base64');
+        } catch (error) {
+            // Fallback : logo SVG simple si fichier manquant
+            return this.getFallbackLogoBase64();
+        }
+    }
+
+    /**
+     * Logo de fallback en SVG
+     */
+    getFallbackLogoBase64() {
         const logoSvg = `
-            <svg width="40" height="20" xmlns="http://www.w3.org/2000/svg">
-                <rect width="40" height="20" fill="#2c5aa0"/>
-                <text x="20" y="15" font-family="Arial" font-size="8" fill="white" text-anchor="middle">LOGO</text>
+            <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="30" cy="30" r="28" fill="#E67E22" stroke="#D35400" stroke-width="2"/>
+                <rect x="20" y="22" width="12" height="8" fill="#D35400" rx="1"/>
+                <rect x="18" y="32" width="16" height="4" fill="#D35400" rx="1"/>
+                <text x="30" y="45" font-family="Arial" font-size="8" fill="white" text-anchor="middle" font-weight="bold">MF2.0</text>
             </svg>
         `;
         return Buffer.from(logoSvg).toString('base64');

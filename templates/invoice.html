@@ -11,10 +11,28 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             font-size: 11px;
             line-height: 1.4;
             color: #333;
+            position: relative;
+        }
+
+        /* Filigrane */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background-image: url('data:image/png;base64,{{LOGO_BASE64}}');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.08;
+            z-index: -1;
         }
 
         .page {
@@ -22,6 +40,7 @@
             min-height: 100vh;
             padding: 20px 0;
             page-break-after: always;
+            position: relative;
         }
 
         .page:last-child {
@@ -31,15 +50,34 @@
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #2c5aa0;
-            padding-bottom: 10px;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #E67E22;
+            padding-bottom: 15px;
         }
 
-        .logo-section h1 {
-            color: #2c5aa0;
-            font-size: 18px;
+        .logo-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-section img {
+            width: 60px;
+            height: 60px;
+            margin-right: 15px;
+        }
+
+        .company-info h1 {
+            color: #E67E22;
+            font-size: 20px;
+            font-weight: bold;
             margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .company-info .tagline {
+            color: #D35400;
+            font-size: 10px;
+            font-style: italic;
         }
 
         .invoice-info {
@@ -47,46 +85,72 @@
         }
 
         .invoice-title {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            color: #2c5aa0;
-            margin-bottom: 5px;
+            color: #E67E22;
+            margin-bottom: 8px;
+            border: 2px solid #E67E22;
+            padding: 5px 15px;
+            display: inline-block;
+        }
+
+        .invoice-details {
+            color: #666;
+            font-size: 10px;
         }
 
         .client-info {
-            margin: 20px 0;
-            background: #f8f9fa;
-            padding: 15px;
-            border-left: 4px solid #2c5aa0;
+            margin: 25px 0;
+            background: linear-gradient(135deg, #FDF2E9 0%, #FDEBD0 100%);
+            padding: 20px;
+            border-left: 5px solid #E67E22;
+            border-radius: 5px;
         }
 
         .client-info h3 {
-            color: #2c5aa0;
-            margin-bottom: 8px;
+            color: #D35400;
+            margin-bottom: 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .client-details {
+            color: #333;
         }
 
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 25px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .items-table th {
-            background: #2c5aa0;
+            background: linear-gradient(135deg, #E67E22 0%, #D35400 100%);
             color: white;
-            padding: 8px;
+            padding: 12px 10px;
             text-align: left;
             font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .items-table td {
-            padding: 6px 8px;
-            border-bottom: 1px solid #ddd;
+            padding: 10px;
             font-size: 10px;
+            border-bottom: 1px solid #ECF0F1;
         }
 
-        .items-table tr:nth-child(even) {
-            background: #f8f9fa;
+        .items-table tr:hover {
+            background: #FDF2E9;
+        }
+
+        .items-table tr:last-child td {
+            border-bottom: none;
         }
 
         .text-right {
@@ -98,31 +162,56 @@
         }
 
         .totals-section {
-            margin-top: 20px;
+            margin-top: 30px;
             float: right;
             width: 300px;
+            background: #FDEBD0;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #E67E22;
         }
 
         .total-line {
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
+            padding: 8px 0;
+            border-bottom: 1px solid #F39C12;
+            font-size: 11px;
+        }
+
+        .total-line:last-child {
+            border-bottom: none;
         }
 
         .total-line.final {
             font-weight: bold;
-            font-size: 12px;
-            border-bottom: 2px solid #2c5aa0;
-            color: #2c5aa0;
+            font-size: 14px;
+            border-top: 2px solid #E67E22;
+            padding-top: 12px;
+            margin-top: 8px;
+            color: #D35400;
         }
 
         .page-info {
             position: absolute;
-            bottom: 30px;
+            bottom: 20px;
             right: 20px;
             font-size: 9px;
-            color: #666;
+            color: #95A5A6;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .footer-note {
+            margin-top: 30px;
+            padding: 15px;
+            background: #ECF0F1;
+            border-radius: 5px;
+            font-size: 9px;
+            color: #7F8C8D;
+            text-align: center;
+            border-left: 4px solid #E67E22;
         }
     </style>
 </head>
