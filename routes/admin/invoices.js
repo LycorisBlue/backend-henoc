@@ -10,7 +10,6 @@ const { Op, literal } = require('sequelize');
  * Récupérer la liste des factures avec filtres optionnels
  */
 router.get('/', async (req, res) => {
-    // Récupération des paramètres de filtrage et pagination
     const {
         status,
         client_id,
@@ -57,154 +56,125 @@ router.get('/', async (req, res) => {
         // Construction des conditions de filtrage pour les factures
         const whereConditions = {};
 
+        // Restriction par rôle : admin ne voit que ses factures
+        if (req.admin.role !== 'superadmin') {
+            whereConditions.admin_id = req.admin.id;
+        }
+
         if (status) {
             whereConditions.status = status;
         }
 
-        if (admin_id) {
+        // Pour superadmin uniquement : filtrage par admin_id spécifique
+        if (admin_id && req.admin.role === 'superadmin') {
             whereConditions.admin_id = admin_id;
         }
 
         // Filtrage par montant
         if (min_amount) {
             whereConditions.total_amount = {
-                ...whereConditions.total_amount,
                 [Op.gte]: parseFloat(min_amount)
             };
         }
 
         if (max_amount) {
-            whereConditions.total_amount = {
-                ...whereConditions.total_amount,
-                [Op.lte]: parseFloat(max_amount)
-            };
+            if (whereConditions.total_amount) {
+                whereConditions.total_amount[Op.lte] = parseFloat(max_amount);
+            } else {
+                whereConditions.total_amount = {
+                    [Op.lte]: parseFloat(max_amount)
+                };
+            }
         }
 
-        // Filtrage par date
-        if (date_from) {
-            whereConditions.created_at = {
-                ...whereConditions.created_at,
-                [Op.gte]: new Date(date_from)
-            };
+        // Filtrage par plage de dates
+        if (date_from || date_to) {
+            whereConditions.created_at = {};
+            if (date_from) {
+                whereConditions.created_at[Op.gte] = new Date(date_from);
+            }
+            if (date_to) {
+                const endDate = new Date(date_to);
+                endDate.setHours(23, 59, 59, 999);
+                whereConditions.created_at[Op.lte] = endDate;
+            }
         }
 
-        if (date_to) {
-            whereConditions.created_at = {
-                ...whereConditions.created_at,
-                [Op.lte]: new Date(date_to)
+        // Conditions pour les relations (client)
+        const clientWhereConditions = {};
+        if (client_id) {
+            clientWhereConditions.id = client_id;
+        }
+        if (whatsapp_number) {
+            clientWhereConditions.whatsapp_number = {
+                [Op.like]: `%${whatsapp_number}%`
             };
         }
 
         // Configuration de la pagination
-        const offset = (page - 1) * limit;
-        const pageSize = parseInt(limit);
+        const offset = (parseInt(page) - 1) * parseInt(limit);
 
-        // Configuration du tri
-        const order = [[sort_by, sort_order]];
-
-        // Options pour l'inclusion des relations
-        const includeOptions = [
-            {
-                model: Request,
-                as: 'request',
-                attributes: ['id', 'description', 'status'],
-                include: [
-                    {
-                        model: Client,
-                        as: 'client',
-                        attributes: ['id', 'whatsapp_number', 'full_name']
-                    }
-                ]
-            },
-            {
-                model: Admin,
-                as: 'admin',
-                attributes: ['id', 'name', 'email']
-            },
-            {
-                model: Payment,
-                as: 'payments',
-                attributes: ['id', 'amount_paid', 'method', 'payment_date', 'confirmed_by']
-            }
-        ];
-
-        // Filtres additionnels pour les relations
-        if (client_id) {
-            includeOptions[0].include[0].where = {
-                id: client_id
-            };
-        }
-
-        if (whatsapp_number) {
-            includeOptions[0].include[0].where = {
-                ...includeOptions[0].include[0].where,
-                whatsapp_number: {
-                    [Op.like]: `%${whatsapp_number}%`
-                }
-            };
-        }
-
-        // Filtrage par statut de paiement (entièrement payé, partiellement payé, non payé)
-        if (payment_status) {
-            // On va réaliser ce filtrage après la requête principale
-        }
-
-        // Requête avec pagination, filtres et inclusion des relations
-        const { count, rows: invoices } = await Invoice.findAndCountAll({
+        // Exécution de la requête avec relations
+        const { count: totalItems, rows: invoices } = await Invoice.findAndCountAll({
             where: whereConditions,
-            include: includeOptions,
-            order,
+            include: [
+                {
+                    model: Request,
+                    as: 'request',
+                    include: [
+                        {
+                            model: Client,
+                            as: 'client',
+                            where: Object.keys(clientWhereConditions).length > 0 ? clientWhereConditions : undefined,
+                            attributes: ['id', 'whatsapp_number', 'full_name']
+                        }
+                    ]
+                },
+                {
+                    model: Admin,
+                    as: 'admin',
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: Payment,
+                    as: 'payments',
+                    attributes: ['amount_paid']
+                }
+            ],
+            limit: parseInt(limit),
             offset,
-            limit: pageSize,
-            distinct: true // Pour un comptage correct avec des relations incluses
+            order: [[sort_by, sort_order.toUpperCase()]],
+            distinct: true
         });
 
-        // Calcul du montant payé pour chaque facture et filtrage par statut de paiement si nécessaire
-        let filteredInvoices = invoices;
-
-        if (payment_status) {
-            filteredInvoices = invoices.filter(invoice => {
-                const totalPaid = invoice.payments.reduce((sum, payment) => sum + parseFloat(payment.amount_paid), 0);
-                const totalAmount = parseFloat(invoice.total_amount);
-
-                switch (payment_status) {
-                    case 'paid':
-                        return totalPaid >= totalAmount;
-                    case 'partial':
-                        return totalPaid > 0 && totalPaid < totalAmount;
-                    case 'unpaid':
-                        return totalPaid === 0;
-                    default:
-                        return true;
-                }
-            });
-        }
-
-        // Calcul des métadonnées de pagination
-        const totalItems = payment_status ? filteredInvoices.length : count;
-        const totalPages = Math.ceil(totalItems / pageSize);
+        // Configuration de la pagination pour la réponse
         const pagination = {
-            total_items: totalItems,
-            total_pages: totalPages,
             current_page: parseInt(page),
-            items_per_page: pageSize,
-            has_next_page: parseInt(page) < totalPages,
-            has_previous_page: parseInt(page) > 1
+            per_page: parseInt(limit),
+            total_items: totalItems,
+            total_pages: Math.ceil(totalItems / parseInt(limit)),
+            has_next_page: parseInt(page) < Math.ceil(totalItems / parseInt(limit)),
+            has_prev_page: parseInt(page) > 1
         };
 
-        // Préparation de la réponse
+        // Formatage des données de réponse
         const responseData = {
-            invoices: filteredInvoices.map(invoice => {
+            invoices: invoices.map(invoice => {
                 const totalPaid = invoice.payments.reduce((sum, payment) => sum + parseFloat(payment.amount_paid), 0);
-                const totalAmount = parseFloat(invoice.total_amount);
-                const remainingAmount = totalAmount - totalPaid;
+                const remainingAmount = parseFloat(invoice.total_amount) - totalPaid;
+
+                // Filtrage par statut de paiement si spécifié
+                const paymentStatusValue = totalPaid >= parseFloat(invoice.total_amount) ? 'paid' : totalPaid > 0 ? 'partial' : 'unpaid';
+                if (payment_status && payment_status !== paymentStatusValue) {
+                    return null;
+                }
 
                 return {
                     id: invoice.id,
                     total_amount: invoice.total_amount,
                     status: invoice.status,
-                    created_at: invoice.createdAt,
-                    payment_status: totalPaid >= totalAmount ? 'paid' : totalPaid > 0 ? 'partial' : 'unpaid',
+                    created_at: invoice.created_at,
+                    payment_status: paymentStatusValue,
                     amount_paid: totalPaid,
                     remaining_amount: remainingAmount,
                     request: {
@@ -228,7 +198,7 @@ router.get('/', async (req, res) => {
                         payment_date: payment.payment_date
                     }))
                 };
-            }),
+            }).filter(invoice => invoice !== null),
             pagination
         };
 
