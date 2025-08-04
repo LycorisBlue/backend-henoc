@@ -68,6 +68,13 @@ class ApiResponse {
         });
     }
 
+    static forbidden(res, message, data = null) {
+        return res.status(403).json({
+            message,
+            data
+        });
+    }
+
     /**
      * Réponse en cas d'erreur serveur.
      * @param {Object} res - L'objet de réponse Express.

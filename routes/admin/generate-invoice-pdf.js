@@ -77,7 +77,7 @@ router.get('/:id/pdf', async (req, res) => {
             logData.status = 'FAILED';
             logData.responseData = { errorType: 'ACCESS_DENIED' };
             await Logger.logEvent(logData);
-            return ApiResponse.unauthorized(res, 'Accès non autorisé');
+            return ApiResponse.forbidden(res, 'Accès non autorisé');
         }
 
         // Structurer les données pour le PDF
