@@ -55,7 +55,7 @@ router.get('/:id/pdf', async (req, res) => {
                     include: [
                         {
                             model: FeeType,
-                            as: 'feeType',
+                            as: 'type',
                             attributes: ['name', 'description']
                         }
                     ]
@@ -101,7 +101,7 @@ router.get('/:id/pdf', async (req, res) => {
                 subtotal: item.subtotal
             })) || [],
             fees: invoice.fees?.map(fee => ({
-                name: fee.feeType?.name || 'Frais',
+                name: fee.type?.name || 'Frais',
                 amount: fee.amount
             })) || []
         };
