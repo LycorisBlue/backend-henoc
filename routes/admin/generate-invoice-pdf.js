@@ -26,10 +26,6 @@ router.get('/:id/pdf', async (req, res) => {
     };
 
     try {
-        // Log pour debug
-        console.log('Récupération facture ID:', invoiceId);
-        console.log('Admin ID:', adminId, 'Role:', req.admin.role);
-
         // Récupérer la facture avec toutes ses relations
         const invoice = await Invoice.findByPk(invoiceId, {
             include: [
@@ -75,16 +71,13 @@ router.get('/:id/pdf', async (req, res) => {
             return ApiResponse.notFound(res, 'Facture introuvable');
         }
 
-        console.log('Facture trouvée. Admin_id facture:', invoice.admin_id, 'Admin connecté:', adminId);
-
         // Vérifier les permissions (admin peut voir ses factures, superadmin toutes)
         if (req.admin.role !== 'superadmin' && invoice.admin_id !== adminId) {
-            console.log('Accès refusé - Admin role:', req.admin.role, 'Facture admin_id:', invoice.admin_id);
             logData.message = 'Accès non autorisé à cette facture';
             logData.status = 'FAILED';
             logData.responseData = { errorType: 'ACCESS_DENIED' };
             await Logger.logEvent(logData);
-            return ApiResponse.forbidden(res, 'Accès non autorisé');
+            return ApiResponse.unauthorized(res, 'Accès non autorisé');
         }
 
         // Structurer les données pour le PDF
@@ -93,7 +86,7 @@ router.get('/:id/pdf', async (req, res) => {
                 id: invoice.id,
                 total_amount: invoice.total_amount,
                 status: invoice.status,
-                created_at: invoice.created_at
+                created_at: invoice.createdAt
             },
             client: {
                 full_name: invoice.request?.client?.full_name,
