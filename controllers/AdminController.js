@@ -19,6 +19,8 @@ const clientManagement = require('../routes/' + service + '/client-management');
 const assignedRequests = require('../routes/' + service + '/assigned-requests'); // Nouvelle route
 const feeTypes = require('../routes/' + service + '/fee-types');
 const generateInvoicePdf = require('../routes/admin/generate-invoice-pdf');
+const clientsList = require('../routes/admin/clients-list');
+
 
 
 
@@ -36,6 +38,8 @@ router.use('/clients', authenticate(), authorize(['admin', 'superadmin']), clien
 router.use('/assigned-requests', authenticate(), authorize(['admin', 'superadmin']), assignedRequests); // Nouvelle route
 router.use('/fee-types', authenticate(), authorize(['admin', 'superadmin']), feeTypes);
 router.use('/invoices', authenticate(), authorize(['admin', 'superadmin']), generateInvoicePdf);
+router.use('/clients', authenticate(), authorize(['admin', 'superadmin']), clientsList);
+
 
 
 
