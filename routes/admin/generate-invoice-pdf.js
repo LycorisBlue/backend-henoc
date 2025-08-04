@@ -118,12 +118,18 @@ router.get('/:id/pdf', async (req, res) => {
         // Génération du PDF
         const pdfBuffer = await PdfService.generateInvoicePdf(invoiceData);
 
+        // Validation du buffer
+        if (!pdfBuffer || pdfBuffer.length === 0) {
+            throw new Error('PDF buffer vide ou invalide');
+        }
+
         // Configuration des en-têtes de réponse
         const filename = `facture_${invoice.id}_${new Date().toISOString().split('T')[0]}.pdf`;
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.setHeader('Content-Length', pdfBuffer.length);
+        res.setHeader('Cache-Control', 'no-cache');
 
         logData.message = 'PDF généré avec succès';
         logData.status = 'SUCCESS';
@@ -134,7 +140,7 @@ router.get('/:id/pdf', async (req, res) => {
         };
         await Logger.logEvent(logData);
 
-        return res.send(pdfBuffer);
+        return res.end(pdfBuffer, 'binary');
 
     } catch (error) {
         logData.message = 'Erreur lors de la génération du PDF';

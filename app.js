@@ -86,7 +86,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 🔐 Routes
 app.use('/auth', loginLimiter, AuthController);
-app.use('/admin', AdminController);
+app.use('/admin', authenticate(), AdminController);
 app.use('/client', ClientController);
 app.use('/superadmin', SuperadminController);
 // app.use('/request', authenticate(), RequestController);

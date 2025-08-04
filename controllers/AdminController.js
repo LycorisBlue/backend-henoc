@@ -35,7 +35,7 @@ router.use('/payments', authenticate(), authorize(['admin', 'superadmin']), paym
 router.use('/clients', authenticate(), authorize(['admin', 'superadmin']), clientManagement); // Nouvelle route
 router.use('/assigned-requests', authenticate(), authorize(['admin', 'superadmin']), assignedRequests); // Nouvelle route
 router.use('/fee-types', authenticate(), authorize(['admin', 'superadmin']), feeTypes);
-router.use('/invoices', generateInvoicePdf);
+router.use('/invoices', authenticate(), authorize(['admin', 'superadmin']), generateInvoicePdf);
 
 
 
