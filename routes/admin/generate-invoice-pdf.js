@@ -86,7 +86,7 @@ router.get('/:id/pdf', async (req, res) => {
                 id: invoice.id,
                 total_amount: invoice.total_amount,
                 status: invoice.status,
-                created_at: invoice.created_at
+                created_at: invoice.createdAt
             },
             client: {
                 full_name: invoice.request?.client?.full_name,
