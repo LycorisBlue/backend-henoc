@@ -137,8 +137,8 @@ class PdfService {
         let pageHtml = template;
 
         // Informations facture
-        pageHtml = pageHtml.replace('{{INVOICE_ID}}', invoice.id);
-        pageHtml = pageHtml.replace('{{INVOICE_DATE}}', this.formatDate(invoice.created_at));
+        pageHtml = pageHtml.replace('{{INVOICE_ID}}', invoice.id.split('-')[0]);
+        pageHtml = pageHtml.replace('{{INVOICE_DATE}}', this.formatDate(invoice.createdAt));
         pageHtml = pageHtml.replace('{{INVOICE_STATUS}}', this.getStatusLabel(invoice.status));
         pageHtml = pageHtml.replace('{{PAGE_NUMBER}}', pageNumber);
         pageHtml = pageHtml.replace('{{TOTAL_PAGES}}', totalPages);
@@ -291,9 +291,9 @@ class PdfService {
      * Formate les montants
      */
     formatCurrency(amount) {
-        return new Intl.NumberFormat('fr-FR', {
+        return new Intl.NumberFormat('fr-CI', {
             style: 'currency',
-            currency: 'EUR'
+            currency: 'XOF'
         }).format(parseFloat(amount) || 0);
     }
 
