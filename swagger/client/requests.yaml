@@ -8,17 +8,22 @@ paths:
       tags:
         - Client
       summary: Créer une nouvelle demande
-      description: Permet de soumettre une nouvelle demande avec des liens de produits et/ou une description. Support pour un ou deux numéros WhatsApp.
+      description: |
+        Permet de soumettre une nouvelle demande avec soit des liens de produits, soit des images de produits.
+        - Type 'link': demande avec des URLs de produits
+        - Type 'image': demande avec upload d'images (max 5 images, 20 Mo total)
+        Support pour un ou deux numéros WhatsApp.
       operationId: createRequest
-      
+
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               required:
                 - whatsapp_number
+                - request_type
               properties:
                 whatsapp_number:
                   type: string
@@ -27,21 +32,43 @@ paths:
                     - Format simple: "+2250102030405"
                     - Format double: "+2250102030405/+2250102030406" (principal/joignable)
                   pattern: '^\+\d{10,15}(\/\+\d{10,15})?$'
-                  minLength: 12
-                  maxLength: 35
-                  examples:
-                    - "+2250102030405"
-                    - "+2250102030405/+2250102030406"
+                  example: "+2250102030405"
+                request_type:
+                  type: string
+                  enum: [link, image]
+                  description: |
+                    Type de demande:
+                    - 'link': demande avec liens de produits
+                    - 'image': demande avec images de produits
+                  example: "link"
                 product_links:
                   type: array
-                  description: Liste des liens vers les produits demandés
+                  description: |
+                    Liste des liens vers les produits demandés.
+                    Requis si request_type = 'link'
                   items:
                     type: string
                     format: uri
                     example: "https://www.example.com/product/123"
+                images:
+                  type: array
+                  description: |
+                    Images des produits (max 5 fichiers, 20 Mo total).
+                    Requis si request_type = 'image'
+                    Formats acceptés: JPEG, PNG, WebP, GIF
+                  items:
+                    type: string
+                    format: binary
+                  maxItems: 5
+                images_descriptions:
+                  type: array
+                  description: Descriptions optionnelles pour chaque image (tableau de strings)
+                  items:
+                    type: string
+                    example: "Vue de face du produit"
                 description:
                   type: string
-                  description: Description détaillée de la demande
+                  description: Description générale de la demande (optionnel)
                   example: "Je souhaite commander ces produits avec livraison express si possible."
 
       responses:
@@ -88,13 +115,18 @@ paths:
                             type: boolean
                             description: Indique si le client a été créé lors de cette demande
                             example: true
+                      request_type:
+                        type: string
+                        enum: [link, image]
+                        description: Type de demande créée
+                        example: "link"
                       description:
                         type: string
                         description: Description de la demande
                         example: "Je souhaite commander ces produits avec livraison express si possible."
                       product_links:
                         type: array
-                        description: Liste des liens produits soumis
+                        description: Liste des liens produits soumis (si request_type = 'link')
                         items:
                           type: object
                           properties:
@@ -108,6 +140,39 @@ paths:
                               format: uri
                               description: URL du produit
                               example: "https://www.example.com/product/123"
+                      product_images:
+                        type: array
+                        description: Liste des images uploadées (si request_type = 'image')
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant unique de l'image
+                              example: "550e8400-e29b-41d4-a716-446655440000"
+                            file_name:
+                              type: string
+                              description: Nom original du fichier
+                              example: "produit.jpg"
+                            file_size:
+                              type: integer
+                              description: Taille du fichier en octets
+                              example: 1024000
+                            mime_type:
+                              type: string
+                              description: Type MIME du fichier
+                              example: "image/jpeg"
+                            url:
+                              type: string
+                              format: uri
+                              description: URL publique de l'image
+                              example: "/uploads/requests/550e8400-e29b-41d4-a716-446655440000.jpg"
+                            description:
+                              type: string
+                              nullable: true
+                              description: Description de l'image
+                              example: "Vue de face du produit"
 
         '400':
           description: Requête invalide
@@ -124,7 +189,14 @@ paths:
                     properties:
                       errorType:
                         type: string
-                        enum: [MISSING_WHATSAPP_NUMBER, MISSING_PRODUCT_INFORMATION, INVALID_PRODUCT_LINKS_FORMAT, INVALID_WHATSAPP_NUMBER_FORMAT]
+                        enum:
+                          - MISSING_WHATSAPP_NUMBER
+                          - INVALID_REQUEST_TYPE
+                          - MISSING_PRODUCT_LINKS
+                          - MISSING_IMAGES
+                          - TOO_MANY_IMAGES
+                          - INVALID_PRODUCT_LINKS_FORMAT
+                          - INVALID_WHATSAPP_NUMBER_FORMAT
                         description: Type d'erreur standardisé
               examples:
                 missingWhatsappNumber:
@@ -133,12 +205,30 @@ paths:
                     message: "Le numéro WhatsApp est obligatoire"
                     data:
                       errorType: "MISSING_WHATSAPP_NUMBER"
-                missingProductInfo:
-                  summary: Informations produit manquantes
+                invalidRequestType:
+                  summary: Type de demande invalide
                   value:
-                    message: "Veuillez fournir au moins un lien de produit ou une description"
+                    message: "Le type de demande doit être \"link\" ou \"image\""
                     data:
-                      errorType: "MISSING_PRODUCT_INFORMATION"
+                      errorType: "INVALID_REQUEST_TYPE"
+                missingProductLinks:
+                  summary: Liens produits manquants pour type 'link'
+                  value:
+                    message: "Au moins un lien de produit est requis pour une demande de type \"link\""
+                    data:
+                      errorType: "MISSING_PRODUCT_LINKS"
+                missingImages:
+                  summary: Images manquantes pour type 'image'
+                  value:
+                    message: "Au moins une image est requise pour une demande de type \"image\" (max 5)"
+                    data:
+                      errorType: "MISSING_IMAGES"
+                tooManyImages:
+                  summary: Trop d'images uploadées
+                  value:
+                    message: "Maximum 5 images autorisées"
+                    data:
+                      errorType: "TOO_MANY_IMAGES"
                 invalidProductLinksFormat:
                   summary: Format de liens produits invalide
                   value:

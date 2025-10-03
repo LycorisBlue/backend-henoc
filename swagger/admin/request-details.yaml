@@ -42,8 +42,13 @@ paths:
                         example: "550e8400-e29b-41d4-a716-446655440000"
                       description:
                         type: string
-                        description: Description de la demande
+                        description: Description générale de la demande
                         example: "Je souhaite commander ces produits avec livraison express si possible."
+                      request_type:
+                        type: string
+                        enum: [link, image]
+                        description: Type de demande (link ou image)
+                        example: "link"
                       status:
                         type: string
                         enum: [en_attente, en_traitement, facturé, payé, commandé, expédié, livré, annulé]
@@ -95,7 +100,7 @@ paths:
                             example: "123 Rue Principale, Abidjan, Côte d'Ivoire"
                       product_links:
                         type: array
-                        description: Liste des liens de produits associés à la demande
+                        description: Liste des liens de produits associés à la demande (si request_type = 'link')
                         items:
                           type: object
                           properties:
@@ -117,6 +122,44 @@ paths:
                               type: string
                               format: date-time
                               description: Date d'ajout du lien produit
+                              example: "2025-05-16T19:00:00.000Z"
+                      product_images:
+                        type: array
+                        description: Liste des images uploadées (si request_type = 'image')
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Identifiant unique de l'image
+                              example: "550e8400-e29b-41d4-a716-446655440000"
+                            file_name:
+                              type: string
+                              description: Nom original du fichier
+                              example: "produit.jpg"
+                            file_size:
+                              type: integer
+                              description: Taille du fichier en octets
+                              example: 1024000
+                            mime_type:
+                              type: string
+                              description: Type MIME du fichier
+                              example: "image/jpeg"
+                            url:
+                              type: string
+                              format: uri
+                              description: URL publique de l'image
+                              example: "/uploads/requests/550e8400-e29b-41d4-a716-446655440000.jpg"
+                            description:
+                              type: string
+                              nullable: true
+                              description: Description de l'image
+                              example: "Vue de face du produit"
+                            created_at:
+                              type: string
+                              format: date-time
+                              description: Date d'upload de l'image
                               example: "2025-05-16T19:00:00.000Z"
                       assigned_admin:
                         type: object

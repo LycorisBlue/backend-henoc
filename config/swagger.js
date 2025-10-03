@@ -21,7 +21,7 @@ const getServers = () => {
             break;
         default:
             servers.push({
-                url: process.env.DEV_API_URL || 'http://localhost:3005',
+                url: process.env.DEV_API_URL || 'http://localhost:3015',
                 description: 'Serveur de développement'
             });
     }

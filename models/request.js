@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       Request.belongsTo(models.Client, { foreignKey: 'client_id', as: 'client' });
       Request.belongsTo(models.Admin, { foreignKey: 'assigned_admin_id', as: 'assigned_admin' });
       Request.hasMany(models.ProductLink, { foreignKey: 'request_id', as: 'product_links' });
+      Request.hasMany(models.ProductImage, { foreignKey: 'request_id', as: 'product_images' });
       Request.hasOne(models.Invoice, { foreignKey: 'request_id', as: 'invoice' });
     }
   }
@@ -24,6 +25,11 @@ module.exports = (sequelize, DataTypes) => {
       description: {
         type: DataTypes.TEXT,
         allowNull: true
+      },
+      request_type: {
+        type: DataTypes.ENUM('link', 'image'),
+        allowNull: false,
+        defaultValue: 'link'
       },
       status: {
         type: DataTypes.ENUM(

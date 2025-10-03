@@ -1,9 +1,10 @@
 // routes/admin/request-details.js (mise à jour avec clé de permission)
 const express = require('express');
 const router = express.Router();
-const { Request, Client, ProductLink, Admin, RequestStatusLog, Invoice, Payment } = require('../../models');
+const { Request, Client, ProductLink, ProductImage, Admin, RequestStatusLog, Invoice, Payment } = require('../../models');
 const ApiResponse = require('../../utils/ApiResponse');
 const Logger = require('../../utils/Logger');
+const FileManager = require('../../utils/FileManager');
 
 /**
  * Récupérer les détails d'une demande spécifique
@@ -38,6 +39,11 @@ router.get('/:id', async (req, res) => {
                     model: ProductLink,
                     as: 'product_links',
                     attributes: ['id', 'url', 'note', 'created_at']
+                },
+                {
+                    model: ProductImage,
+                    as: 'product_images',
+                    attributes: ['id', 'file_path', 'file_name', 'file_size', 'mime_type', 'description', 'created_at']
                 },
                 {
                     model: Admin,
@@ -98,6 +104,7 @@ router.get('/:id', async (req, res) => {
         const responseData = {
             id: request.id,
             description: request.description,
+            request_type: request.request_type,
             status: request.status,
             created_at: request.createdAt,
             updated_at: request.updatedAt,
@@ -117,6 +124,15 @@ router.get('/:id', async (req, res) => {
                 url: link.url,
                 note: link.note,
                 created_at: link.createdAt
+            })),
+            product_images: request.product_images.map(image => ({
+                id: image.id,
+                file_name: image.file_name,
+                file_size: image.file_size,
+                mime_type: image.mime_type,
+                url: FileManager.getPublicUrl(image.file_path),
+                description: image.description,
+                created_at: image.createdAt
             })),
             assigned_admin: request.assigned_admin ? {
                 id: request.assigned_admin.id,

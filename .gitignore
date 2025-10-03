@@ -8,6 +8,9 @@
 *.log
 logs/
 
+# Uploads
+public/uploads/
+
 # Database
 *.sqlite
 *.db
