@@ -11,9 +11,9 @@ const { v4: uuidv4 } = require('uuid');
  * Route pour soumettre une nouvelle demande client
  * Supporte multipart/form-data pour les images
  */
-router.post('/', upload.array('images', 5), async (req, res) => {
+router.post('/', upload.fields([{ name: 'images', maxCount: 5 }]), async (req, res) => {
     const { whatsapp_number, request_type, product_links, description } = req.body;
-    const uploadedFiles = req.files || [];
+    const uploadedFiles = req.files?.images || [];
 
     const logData = {
         message: '',
