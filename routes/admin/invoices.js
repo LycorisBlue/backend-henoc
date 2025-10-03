@@ -169,6 +169,8 @@ router.get('/', async (req, res) => {
                     return null;
                 }
 
+                console.log(invoice);
+
                 return {
                     id: invoice.id,
                     total_amount: invoice.total_amount,
