@@ -11,9 +11,47 @@ const { v4: uuidv4 } = require('uuid');
  * Route pour soumettre une nouvelle demande client
  * Supporte multipart/form-data pour les images
  */
-router.post('/', upload.fields([{ name: 'images', maxCount: 5 }]), async (req, res) => {
+router.post('/', (req, res, next) => {
+    console.log('=== DÉBUT REQUÊTE ===');
+    console.log('Content-Type:', req.headers['content-type']);
+    console.log('Method:', req.method);
+
+    upload.fields([{ name: 'images', maxCount: 5 }])(req, res, (err) => {
+        if (err) {
+            console.error('❌ ERREUR MULTER:', err);
+            console.error('Type d\'erreur:', err.name);
+            console.error('Message:', err.message);
+            console.error('Field:', err.field);
+            console.error('Code:', err.code);
+
+            return res.status(400).json({
+                message: 'Erreur lors de l\'upload des fichiers',
+                data: {
+                    error: err.message,
+                    field: err.field,
+                    code: err.code,
+                    errorType: 'UPLOAD_ERROR'
+                }
+            });
+        }
+
+        console.log('✅ Upload Multer réussi');
+        console.log('req.body:', req.body);
+        console.log('req.files:', req.files);
+        console.log('Clés de req.body:', Object.keys(req.body));
+
+        next();
+    });
+}, async (req, res) => {
     const { whatsapp_number, request_type, product_links, description } = req.body;
     const uploadedFiles = req.files?.images || [];
+
+    console.log('=== TRAITEMENT DEMANDE ===');
+    console.log('whatsapp_number:', whatsapp_number);
+    console.log('request_type:', request_type);
+    console.log('product_links:', product_links);
+    console.log('description:', description);
+    console.log('uploadedFiles count:', uploadedFiles.length);
 
     const logData = {
         message: '',
